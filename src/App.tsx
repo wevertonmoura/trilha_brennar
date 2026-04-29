@@ -254,7 +254,7 @@ const TrilhaBrennand = () => {
         setTempoRestante(900); 
       } else {
         console.error("Erro do Mercado Pago:", mpData);
-        throw new Error("Erro ao gerar o PIX. Verifique a configuração.");
+        throw new Error("CPF inválido ou não autorizado. Verifique os dados e tente com outro número.");
       }
     } catch (err: any) {
       console.error(err);
