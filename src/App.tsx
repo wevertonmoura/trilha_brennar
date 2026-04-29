@@ -6,7 +6,7 @@ import Admin from './Admin';
 
 // === CONFIGURAÇÃO DO SUPABASE ===
 const supabaseUrl = 'https://moqhjiesavnivkancxpz.supabase.co';
-// ⚠️ ATENÇÃO: TROQUE A CHAVE ABAIXO PELA CHAVE CORRETA QUE COMEÇA COM "eyJ..."
+// Voltamos para a chave pública aqui no Frontend para o GitHub aprovar o envio
 const supabaseKey = 'sb_publishable_X5iKQonjycmsEMfeePTsyg_OkKp5ts-';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -85,7 +85,8 @@ const TrilhaBrennand = () => {
 
   const handleLoginAdmin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (senhaAdmin === import.meta.env.VITE_SENHA_ADMIN) { 
+    // Senha travada no código para evitar bugs de ambiente de produção
+    if (senhaAdmin === '85113257@we') { 
       setTelaAtual('admin');
       setErroLoginAdmin('');
     } else {

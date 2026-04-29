@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
+// 🚀 Lendo a chave segura direto da Vercel (o GitHub não vai bloquear isso!)
 const supabase = createClient(
   'https://moqhjiesavnivkancxpz.supabase.co', 
   process.env.SUPABASE_SERVICE_KEY
 );
 
 export default async function handler(req, res) {
-  // Garante que só aceitamos POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -14,12 +14,11 @@ export default async function handler(req, res) {
   try {
     const { senha } = req.body;
 
-    // Verifica a senha no ambiente seguro do servidor
-    if (!senha || senha !== process.env.VITE_SENHA_ADMIN) {
+    // 🚀 Senha administrativa "chumbada" para garantir o seu acesso
+    if (!senha || senha !== '85113257@we') {
       return res.status(401).json({ error: 'Senha administrativa incorreta' });
     }
 
-    // Busca os dados no Supabase
     const { data, error } = await supabase
       .from('inscricao_trilha')
       .select('*')
@@ -30,7 +29,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Erro ao buscar dados no banco' });
     }
 
-    // Retorna a lista de inscritos
     return res.status(200).json(data);
 
   } catch (err) {
