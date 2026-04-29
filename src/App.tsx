@@ -6,12 +6,12 @@ import Admin from './Admin';
 
 // === CONFIGURAÇÃO DO SUPABASE ===
 const supabaseUrl = 'https://moqhjiesavnivkancxpz.supabase.co';
+// ⚠️ ATENÇÃO: TROQUE A CHAVE ABAIXO PELA CHAVE CORRETA QUE COMEÇA COM "eyJ..."
 const supabaseKey = 'sb_publishable_X5iKQonjycmsEMfeePTsyg_OkKp5ts-';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TrilhaBrennand = () => {
   // === ESTADOS DO SISTEMA ===
-  const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -92,12 +92,6 @@ const TrilhaBrennand = () => {
       setErroLoginAdmin('Senha incorreta. Acesso negado!');
     }
   };
-
-  // EFEITOS
-  useEffect(() => {
-    const splashTimer = setTimeout(() => setShowSplash(false), 2500);
-    return () => clearTimeout(splashTimer);
-  }, []);
 
   useEffect(() => {
     let timer: any;
@@ -203,7 +197,6 @@ const TrilhaBrennand = () => {
       const cpfsParaLimpar = participants.map(p => p.cpf.replace(/\D/g, ''));
 
       // 🚀 A MÁGICA: Deleta qualquer inscrição antiga desses CPFs que ainda não foi paga
-      // Isso evita que fiquem registros duplicados "pendentes" no seu banco
       await supabase
         .from('inscricao_trilha')
         .delete()
@@ -229,7 +222,7 @@ const TrilhaBrennand = () => {
       for (const res of resultados) {
         if (res.error) {
           console.error("Erro do Banco:", res.error);
-          throw new Error("Erro ao salvar. Verifique se as colunas estão corretas no banco.");
+          throw new Error("Erro ao salvar. Verifique a configuração do banco de dados.");
         }
       }
       
@@ -312,21 +305,6 @@ const TrilhaBrennand = () => {
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900 font-sans selection:bg-emerald-200 overflow-x-hidden">
       <AnimatePresence>
-        {showSplash && (
-          <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} className="fixed inset-0 z-[999] bg-zinc-100 flex flex-col items-center justify-center">
-            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center">
-              <img src="/logo.png" alt="Invasores" className="w-40 h-40 object-cover rounded-full border-4 border-white shadow-[0_0_25px_rgba(16,185,129,0.2)]" />
-              <div className="mt-6 flex gap-2">
-                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
         {selectedImg && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 cursor-pointer" onClick={() => setSelectedImg(null)}>
             <button className="absolute top-6 right-6 text-white bg-white/10 p-2 rounded-full hover:bg-white/20 transition-all"><X size={32}/></button>
@@ -338,9 +316,7 @@ const TrilhaBrennand = () => {
       <section className="relative h-[60vh] md:h-[70vh] flex items-end overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img src="/foto1.jpg" alt="Cachoeira do Brennand" className="w-full h-full object-cover" />
-          {/* MÁGICA AQUI: Apenas uma camada semi-transparente para o texto branco ler, SEM neblina branca! */}
           <div className="absolute inset-0 bg-black/40" />
-          {/* Gradiente preto BEM suave só embaixo para dar base pro botão */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </div>
         <div className="container mx-auto px-6 pb-12 relative z-10">

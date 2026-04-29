@@ -89,7 +89,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     }
 
     const primeiroNome = nome.split(' ')[0]; // Pega só o primeiro nome pra ser mais amigável
-    const mensagem = encodeURIComponent(`Fala ${primeiroNome}! Aqui é da organização da Trilha 3 Reinos. Vi que sua inscrição está confirmada. Você conseguiu entrar no nosso grupo oficial do WhatsApp?`);
+    const mensagem = encodeURIComponent(`Fala ${primeiroNome}! Aqui é da organização da Trilha Cachoeira do Brennand. Vi que sua inscrição está confirmada. Você conseguiu entrar no nosso grupo oficial do WhatsApp?`);
     
     window.open(`https://wa.me/${numeroFormatado}?text=${mensagem}`, '_blank');
   };
@@ -124,7 +124,8 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   };
 
   const totalPagos = adminData.filter(p => p.pago).length;
-  const arrecadado = totalPagos * 20; 
+  // A MÁGICA DO VALOR ATUALIZADA AQUI 👇
+  const arrecadado = totalPagos * 30; 
 
   const dadosFiltrados = adminData.filter(p => 
     p.nome.toLowerCase().includes(busca.toLowerCase()) || 

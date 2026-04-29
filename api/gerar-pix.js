@@ -12,8 +12,7 @@ export default async function handler(req, res) {
 
   // IMPORTANTE: Atualize para o link real da Vercel deste novo projeto da Brennand
   // Exemplo: https://trilha-brennand.vercel.app/api/webhook
-  const webhookUrl = 'https://trilha-brennand.vercel.app/api/webhook'; 
-
+  const webhookUrl = 'https://trilha-brennar.vercel.app/api/webhook';
   try {
     const response = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
