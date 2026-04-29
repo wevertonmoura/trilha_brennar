@@ -33,8 +33,8 @@ const TrilhaBrennand = () => {
   
   // === VALORES E CASADINHA ===
   // === VALORES E CASADINHA ===
-  const valorIndividual = 1; // ⚠️ VALOR DE TESTE (Mude para 30 depois)
-  const valorCasadinha = 2;  // ⚠️ VALOR DE TESTE (Mude para 50 depois)
+  const valorIndividual = 30; 
+  const valorCasadinha = 50;
   const taxaPix = 0.50;
   const calcularValorBase = (qtd: number) => {
     const pares = Math.floor(qtd / 2);
@@ -254,7 +254,7 @@ const TrilhaBrennand = () => {
         setTempoRestante(900); 
       } else {
         console.error("Erro do Mercado Pago:", mpData);
-        throw new Error("CPF inválido ou não autorizado. Verifique os dados e tente com outro número.");
+        throw new Error("CPF inválido ou não autorizado. Verifique os dados e tente novamente.");
       }
     } catch (err: any) {
       console.error(err);
