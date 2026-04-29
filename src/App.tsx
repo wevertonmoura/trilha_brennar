@@ -32,10 +32,10 @@ const TrilhaBrennand = () => {
   const linkSuporte = "https://wa.me/5581994350798?text=Olá,%20preciso%20de%20ajuda%20com%20meu%20ingresso%20da%20Trilha%20Cachoeira%20do%20Brennand."; 
   
   // === VALORES E CASADINHA ===
-  const valorIndividual = 0.50; 
-  const valorCasadinha = 1;
-  const taxaPix = 0.05; 
-
+  // === VALORES E CASADINHA ===
+  const valorIndividual = 1; // ⚠️ VALOR DE TESTE (Mude para 30 depois)
+  const valorCasadinha = 2;  // ⚠️ VALOR DE TESTE (Mude para 50 depois)
+  const taxaPix = 0.50;
   const calcularValorBase = (qtd: number) => {
     const pares = Math.floor(qtd / 2);
     const avulsos = qtd % 2;
