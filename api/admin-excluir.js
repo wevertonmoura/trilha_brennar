@@ -6,34 +6,36 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).send('Método inválido');
-  
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método não permitido' });
+  }
+
   try {
-    // 1. Validação de segurança com senha fixa para pular o erro 401
-    if (senha !== '85113257@we') {
-      return res.status(401).json({ error: 'Acesso negado' });
+    const { senha, id } = req.body;
+
+    // 🚀 Senha fixa igual ao listar
+    if (!senha || senha !== '85113257@we') {
+      return res.status(401).json({ error: 'Senha administrativa incorreta' });
     }
 
-    // 2. Validação do ID
     if (!id) {
-      return res.status(400).json({ error: 'ID do participante é obrigatório' });
+      return res.status(400).json({ error: 'ID não fornecido' });
     }
 
-    // 3. Executa a exclusão
     const { error } = await supabase
       .from('inscricao_trilha')
       .delete()
       .eq('id', id);
 
     if (error) {
-      console.error("Erro ao excluir no Supabase:", error);
-      return res.status(400).json({ error: 'Erro ao excluir registro' });
+      console.error("Erro Supabase:", error);
+      return res.status(400).json({ error: 'Erro ao excluir no banco' });
     }
-    
+
     return res.status(200).json({ success: true });
 
   } catch (err) {
     console.error("Erro interno:", err);
-    return res.status(500).json({ error: 'Erro interno no servidor' });
+    return res.status(500).json({ error: 'Erro interno' });
   }
 }
