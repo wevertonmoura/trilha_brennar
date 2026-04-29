@@ -6,7 +6,7 @@ import Admin from './Admin';
 
 // === CONFIGURAÇÃO DO SUPABASE ===
 const supabaseUrl = 'https://moqhjiesavnivkancxpz.supabase.co';
-// Voltamos para a chave pública aqui no Frontend para o GitHub aprovar o envio
+// Chave pública no frontend para o GitHub aprovar
 const supabaseKey = 'sb_publishable_X5iKQonjycmsEMfeePTsyg_OkKp5ts-';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -27,14 +27,21 @@ const TrilhaBrennand = () => {
   // === CARTEIRA DE INGRESSOS VIRTUAL ===
   const [meusIngressos, setMeusIngressos] = useState<any[]>([]);
 
-  // === LINKS E VALORES ===
-  const linkGrupoWhats = "https://chat.whatsapp.com/JiSGu7PT6S3Ds3h6ZObqdd"; 
-  const linkGrupoGeral = "https://chat.whatsapp.com/BEjOT8bcJkZB8D8Krzxr3R"; 
-  const linkInstagram = "https://www.instagram.com/invasores_081"; 
+  // === 🔗 LINKS ===
+  const linkGrupoWhats = "https://chat.whatsapp.com/H5DWJOz0wcC2PntYSq1t8y"; 
+  const linkInstagram = "https://www.instagram.com/invasores_081?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="; 
   const linkSuporte = "https://wa.me/5581994350798?text=Olá,%20preciso%20de%20ajuda%20com%20meu%20ingresso%20da%20Trilha%20Cachoeira%20do%20Brennand."; 
   
-  const valorIngresso = 30; 
+  // === VALORES E CASADINHA ===
+  const valorIndividual = 30; 
+  const valorCasadinha = 50;
   const taxaPix = 0.50; 
+
+  const calcularValorBase = (qtd: number) => {
+    const pares = Math.floor(qtd / 2);
+    const avulsos = qtd % 2;
+    return (pares * valorCasadinha) + (avulsos * valorIndividual);
+  };
 
   const formatarMoeda = (valor: number) => {
     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -85,7 +92,6 @@ const TrilhaBrennand = () => {
 
   const handleLoginAdmin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Senha travada no código para evitar bugs de ambiente de produção
     if (senhaAdmin === '85113257@we') { 
       setTelaAtual('admin');
       setErroLoginAdmin('');
@@ -197,14 +203,12 @@ const TrilhaBrennand = () => {
       const mainEmail = participants[0].email;
       const cpfsParaLimpar = participants.map(p => p.cpf.replace(/\D/g, ''));
 
-      // 🚀 A MÁGICA: Deleta qualquer inscrição antiga desses CPFs que ainda não foi paga
       await supabase
         .from('inscricao_trilha')
         .delete()
         .in('cpf', cpfsParaLimpar)
         .eq('pago', false);
 
-      // Agora sim, insere os novos registros "limpos"
       const promises = participants.map(p => 
         supabase.from('inscricao_trilha').insert([{ 
           nome: p.name, 
@@ -216,7 +220,8 @@ const TrilhaBrennand = () => {
         }])
       );
       
-      const valorTotal = Number(((participants.length * valorIngresso) + taxaPix).toFixed(2)); 
+      const valorBase = calcularValorBase(participants.length);
+      const valorTotal = Number((valorBase + taxaPix).toFixed(2)); 
       
       const resultados = await Promise.all(promises);
       
@@ -278,7 +283,7 @@ const TrilhaBrennand = () => {
                 <Lock size={28} className="text-emerald-500" />
               </div>
               <h2 className="text-2xl font-black text-zinc-900 uppercase italic tracking-tighter">Acesso Restrito</h2>
-              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Painel de Gestão • Invasores</p>
+              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mt-1 font-bold">Painel de Gestão</p>
             </div>
             <form onSubmit={handleLoginAdmin} className="space-y-6">
               <div className="space-y-2">
@@ -321,8 +326,8 @@ const TrilhaBrennand = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </div>
         <div className="container mx-auto px-6 pb-12 relative z-10">
-          <span className="text-emerald-400 font-black uppercase tracking-[0.3em] text-[10px]">Invasores Apresenta</span>
-          <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter mt-1 uppercase leading-none text-white drop-shadow-md">Trilha <br/> <span className="text-emerald-500"> Cachoeira do Brennand</span></h1>
+          
+          <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter mt-1 uppercase leading-none text-white drop-shadow-md">Vem Para Trilha <br/> <span className="text-emerald-500"> Cachoeira do Brennand</span></h1>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-8">
             <a href="#inscricao" onClick={scrollToForm} className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-xl shadow-lg transition-all uppercase tracking-widest text-[10px]">Garantir Ingresso <ChevronRight size={14} /></a>
           </motion.div>
@@ -354,10 +359,10 @@ const TrilhaBrennand = () => {
 
             <section className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="col-span-full"><h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">Sobre o evento</h2></div>
-              <InfoRow icon={<Calendar />} title="Data" text="09 de Maio de 2026" />
+              <InfoRow icon={<Calendar />} title="Data" text="31 de Maio de 2026" />
               <InfoRow icon={<Clock />} title="Horário" text="07:00 às 12:00" />
-              <a href="https://www.google.com/maps/place/?q=place_id:ChIJ4-tYpb8RqwcRxSQFPEP7it4" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><InfoRow icon={<MapPin className="text-emerald-600" />} title="Localização" text="Cachoeira do Brennand - PE" /></a>
-              <InfoRow icon={<Trophy />} title="Investimento" text={`R$ ${valorIngresso},00 por pessoa`} />
+              <a href="https://maps.app.goo.gl/fy1R962DJBY4HkWY8" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><InfoRow icon={<MapPin className="text-emerald-600" />} title="Localização" text="Cachoeira do Brennand - PE" /></a>
+              <InfoRow icon={<Trophy />} title="Investimento" text={`A partir de R$ ${valorIndividual},00`} />
             </section>
 
             <section>
@@ -366,7 +371,7 @@ const TrilhaBrennand = () => {
                 <CheckItem icon={<Coffee />} text="Café da Manhã Incluso" />
                 <CheckItem icon={<Users />} text="Guias Experientes" />
                 <CheckItem icon={<Trophy />} text="Medalha de Participação" />
-                <CheckItem icon={<Gift />} text="Sorteios durante o evento" />
+                <CheckItem icon={<Waves className="text-blue-500" />} text="Banho de Cachoeira" />
               </div>
 
               <h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">O QUE LEVAR? (RECOMENDAÇÕES)</h2>
@@ -383,11 +388,11 @@ const TrilhaBrennand = () => {
             <section className="space-y-6">
               <h2 className="text-2xl font-black uppercase italic mb-6 text-emerald-600 tracking-tighter">INFORMAÇÕES IMPORTANTES</h2>
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><Ticket className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Investimento</h4><p className="text-sm text-zinc-600 leading-relaxed">O valor da inscrição é de <strong className="text-emerald-600">R$ 30,00 por pessoa</strong>. Vagas limitadas.</p></div></div>
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><Ticket className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Investimento</h4><p className="text-sm text-zinc-600 leading-relaxed">Individual: R$ 30,00 | Casadinha: R$ 50,00. Vagas limitadas.</p></div></div>
                 <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><VolumeX className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Som e Natureza</h4><p className="text-sm text-zinc-600 leading-relaxed">Não é permitido o uso de caixas de som em volume alto.</p></div></div>
                 <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><QrCode className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Pagamento via PIX</h4><p className="text-sm text-zinc-600 leading-relaxed">Confirmação automática via PIX. Acréscimo de taxa de <strong className="text-emerald-600">R$ 0,50</strong>.</p></div></div>
                 <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><Coffee className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Respeito à Natureza</h4><p className="text-sm text-zinc-600 leading-relaxed">Não deixe nada além de pegadas. Traga todo o seu lixo de volta.</p></div></div>
-                <div className="bg-red-50 p-6 rounded-2xl border border-red-100 flex gap-5"><AlertTriangle className="text-red-500 shrink-0" size={32}/><div><h4 className="font-bold text-red-600 uppercase text-sm mb-2 tracking-widest">Segurança</h4><p className="text-sm text-red-800/80 leading-relaxed">Siga sempre as instruções dos organizadores Invasores.</p></div></div>
+                <div className="bg-red-50 p-6 rounded-2xl border border-red-100 flex gap-5"><AlertTriangle className="text-red-500 shrink-0" size={32}/><div><h4 className="font-bold text-red-600 uppercase text-sm mb-2 tracking-widest">Segurança</h4><p className="text-sm text-red-800/80 leading-relaxed">Siga sempre as instruções dos guias do evento.</p></div></div>
               </div>
             </section>
           </div>
@@ -398,7 +403,10 @@ const TrilhaBrennand = () => {
                 <>
                   <div className="text-center mb-10">
                     <h2 className="text-4xl font-black uppercase italic tracking-tighter text-zinc-900">INSCRIÇÃO</h2>
-                    <p className="text-emerald-600 text-sm font-bold mt-2 tracking-widest">R$ 30,00 POR PESSOA</p>
+                    <div className="flex flex-col gap-1 mt-2">
+                      <p className="text-emerald-600 text-sm font-bold tracking-widest uppercase">Individual: R$ 30,00</p>
+                      <p className="text-pink-500 text-xs font-black tracking-widest uppercase animate-pulse">🔥 Casadinha: 2 pessoas por R$ 50,00</p>
+                    </div>
                   </div>
                   
                   {meusIngressos.length > 0 && (
@@ -422,7 +430,7 @@ const TrilhaBrennand = () => {
                           </div>
                           <div className="space-y-1">
                             <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">WhatsApp</label>
-                            <input type="tel" value={participant.phone} onChange={e => updateParticipant(index, 'phone', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="(81) 9...." />
+                            <input type="tel" value={participant.phone} onChange={e => updateParticipant(index, 'phone', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="(81) 99999-9999" />
                           </div>
                           <div className="space-y-1">
                             <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">CPF</label>
@@ -447,12 +455,12 @@ const TrilhaBrennand = () => {
                     <div className="flex items-start gap-3 pt-6 border-t border-zinc-200">
                       <input type="checkbox" id="terms" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} className="mt-1 h-5 w-5 accent-emerald-500 cursor-pointer rounded border-zinc-300" />
                       <label htmlFor="terms" className="text-[11px] text-zinc-500 font-bold leading-relaxed cursor-pointer select-none">
-                        Aceito o Termo de Responsabilidade (declaro estar em boas condições de saúde) e estou ciente de que cancelamentos com reembolso só podem ser solicitados até 72h antes do evento.
+                        Aceito o Termo de Responsabilidade (declaro estar em boas condições de saúde) e estou ciente de que a inscrição é pessoal e intransferível, não havendo devolução do valor em caso de desistência.
                       </label>
                     </div>
                     {errorMsg && <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-[10px] font-bold flex items-center gap-2"><AlertCircle size={14}/> {errorMsg}</div>}
                     <button disabled={loading} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-emerald-500/30 transition-all uppercase tracking-widest flex items-center justify-center gap-3 text-sm mt-4">
-                      {loading ? <Loader2 className="animate-spin" /> : <>Finalizar (R$ {formatarMoeda((participants.length * valorIngresso) + taxaPix)}) <ChevronRight size={20} /></>}
+                      {loading ? <Loader2 className="animate-spin" /> : <>Finalizar (R$ {formatarMoeda(calcularValorBase(participants.length) + taxaPix)}) <ChevronRight size={20} /></>}
                     </button>
                   </form>
                 </>
@@ -504,7 +512,7 @@ const TrilhaBrennand = () => {
                                 <div className="grid grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
                                   <div>
                                     <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Calendar size={10}/> Data</p>
-                                    <p className="text-zinc-800 font-bold text-sm">09 Mai 2026</p>
+                                    <p className="text-zinc-800 font-bold text-sm">31 Mai 2026</p>
                                   </div>
                                   <div>
                                     <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Clock size={10}/> Partida</p>
@@ -533,19 +541,12 @@ const TrilhaBrennand = () => {
 
                       {/* === BOTÕES FINAIS COM SUPORTE === */}
                       <div className="space-y-3 mt-8">
-                        <a href={linkGrupoWhats} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 w-full bg-[#25D366] p-4 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-[#25D366]/30 transform hover:scale-105 transition-all text-white text-xs">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M11.996 0A11.96 11.96 0 0 0 0 11.996c0 2.115.548 4.14 1.59 5.955L.003 24l6.19-1.62A11.956 11.956 0 0 0 11.996 24C18.625 24 24 18.625 24 11.996 24 5.367 18.625 0 11.996 0zM7.202 5.86c.218-.01.442-.016.666-.016.27 0 .618.01.9.52.316.57 1.018 2.476 1.107 2.665.09.19.16.42-.03.65-.188.22-.26.33-.518.65-.258.31-.54.67-.77.905-.258.26-.528.53-.228 1.04.3.5 1.34 2.21 2.89 3.58 2.008 1.77 3.658 2.33 4.198 2.56.54.23.86.19 1.17-.13.31-.32 1.34-1.57 1.7-2.11.36-.54.72-.45 1.21-.26.5.19 3.16 1.49 3.7 1.76.54.26.9.39 1.03.6.13.22.13 1.26-.35 2.48-.48 1.22-2.82 2.38-3.9 2.45-1.07.07-2.22.4-6.35-1.22-4.9-1.92-8.08-6.9-8.33-7.23-.25-.33-1.98-2.65-1.98-5.06s1.22-3.6 1.66-4.06c.44-.45 1.05-.58 1.54-.58z"/>
-                          </svg>
-                          Entrar no Grupo Oficial
-                        </a>
-                        
                         <button onClick={comprarMaisIngressos} className="flex items-center justify-center gap-2 w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 p-4 rounded-xl font-bold uppercase tracking-widest transition-all text-[10px] border border-zinc-300">
                           <Plus size={16}/> Comprar ingresso para outra pessoa
                         </button>
 
                         <a href={linkSuporte} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full text-zinc-400 hover:text-emerald-600 py-3 font-bold uppercase tracking-widest transition-all text-[9px] mt-2">
-                          <AlertCircle size={14}/> Solicitar edição de dados ou devolução
+                          <AlertCircle size={14}/> Solicitar edição de dados
                         </a>
                       </div>
                     </div>
@@ -561,7 +562,7 @@ const TrilhaBrennand = () => {
                       <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
                         <p className="text-xs font-bold uppercase text-zinc-500 tracking-widest mb-2">Valor total</p>
-                        <p className="text-5xl font-black text-zinc-900 tracking-tighter">R$ {formatarMoeda((participants.length * valorIngresso) + taxaPix)}</p>
+                        <p className="text-5xl font-black text-zinc-900 tracking-tighter">R$ {formatarMoeda(calcularValorBase(participants.length) + taxaPix)}</p>
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 bg-zinc-50 p-2 pl-4 rounded-xl border border-zinc-200">
@@ -594,12 +595,12 @@ const TrilhaBrennand = () => {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-1 bg-gradient-to-r from-transparent via-emerald-200 to-transparent blur-sm"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-md mx-auto bg-zinc-50 border border-zinc-200 rounded-2xl p-6 mb-8 backdrop-blur-sm relative overflow-hidden group shadow-sm">
-            <h4 className="text-zinc-900 font-black uppercase tracking-widest mb-2 flex items-center justify-center gap-2 text-sm">Faça parte da família <Users size={16} className="text-emerald-500"/></h4>
-            <p className="text-zinc-500 text-xs mb-6 px-2 leading-relaxed">Acompanhe nossa rotina, tire dúvidas e venha correr com a gente. <br/><span className="text-emerald-600 font-bold mt-2 block">#Invasores </span></p>
+            <h4 className="text-zinc-900 font-black uppercase tracking-widest mb-2 flex items-center justify-center gap-2 text-sm">Vem pra trilha com a gente <Users size={16} className="text-emerald-500"/></h4>
+            <p className="text-zinc-500 text-xs mb-6 px-2 leading-relaxed">Acompanhe nossa rotina, tire dúvidas no grupo e venha superar seus limites com a gente. <br/><span className="text-emerald-600 font-bold mt-2 block">#VemParaTrilha </span></p>
             <div className="flex flex-col sm:flex-row gap-3">
               <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href={linkInstagram} target="_blank" className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest"><Instagram size={16} /> Siga no Insta</motion.a>
               
-              <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href={linkGrupoGeral} target="_blank" className="flex-1 bg-emerald-600 text-white font-black py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest">
+              <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href={linkGrupoWhats} target="_blank" className="flex-1 bg-emerald-600 text-white font-black py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.996 0A11.96 11.96 0 0 0 0 11.996c0 2.115.548 4.14 1.59 5.955L.003 24l6.19-1.62A11.956 11.956 0 0 0 11.996 24C18.625 24 24 18.625 24 11.996 24 5.367 18.625 0 11.996 0zM7.202 5.86c.218-.01.442-.016.666-.016.27 0 .618.01.9.52.316.57 1.018 2.476 1.107 2.665.09.19.16.42-.03.65-.188.22-.26.33-.518.65-.258.31-.54.67-.77.905-.258.26-.528.53-.228 1.04.3.5 1.34 2.21 2.89 3.58 2.008 1.77 3.658 2.33 4.198 2.56.54.23.86.19 1.17-.13.31-.32 1.34-1.57 1.7-2.11.36-.54.72-.45 1.21-.26.5.19 3.16 1.49 3.7 1.76.54.26.9.39 1.03.6.13.22.13 1.26-.35 2.48-.48 1.22-2.82 2.38-3.9 2.45-1.07.07-2.22.4-6.35-1.22-4.9-1.92-8.08-6.9-8.33-7.23-.25-.33-1.98-2.65-1.98-5.06s1.22-3.6 1.66-4.06c.44-.45 1.05-.58 1.54-.58z"/>
                 </svg>
@@ -608,7 +609,7 @@ const TrilhaBrennand = () => {
             </div>
           </div>
           <div className="flex flex-col items-center gap-4 border-t border-zinc-200 pt-6">
-            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">© 2026 Grupo Invasores. Todos os direitos reservados.</p>
+            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">© 2026 Vem Para Trilha. Todos os direitos reservados.</p>
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="py-2 px-6 rounded-full bg-zinc-50 border border-zinc-200 text-emerald-600 font-bold text-[10px] uppercase tracking-widest hover:bg-zinc-100 hover:text-emerald-700 flex items-center gap-2 transition-colors shadow-sm">Voltar ao Topo <ArrowRight className="-rotate-90 w-3 h-3" /></button>
           </div>
         </div>
