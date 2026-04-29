@@ -6,7 +6,6 @@ import Admin from './Admin';
 
 // === CONFIGURAÇÃO DO SUPABASE ===
 const supabaseUrl = 'https://moqhjiesavnivkancxpz.supabase.co';
-// Chave pública no frontend para o GitHub aprovar
 const supabaseKey = 'sb_publishable_X5iKQonjycmsEMfeePTsyg_OkKp5ts-';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -33,9 +32,9 @@ const TrilhaBrennand = () => {
   const linkSuporte = "https://wa.me/5581994350798?text=Olá,%20preciso%20de%20ajuda%20com%20meu%20ingresso%20da%20Trilha%20Cachoeira%20do%20Brennand."; 
   
   // === VALORES E CASADINHA ===
-  const valorIndividual = 30; 
-  const valorCasadinha = 50;
-  const taxaPix = 0.50; 
+  const valorIndividual = 0.50; 
+  const valorCasadinha = 1;
+  const taxaPix = 0.05; 
 
   const calcularValorBase = (qtd: number) => {
     const pares = Math.floor(qtd / 2);
@@ -52,7 +51,7 @@ const TrilhaBrennand = () => {
   const [copiado, setCopiado] = useState(false);
   const [tempoRestante, setTempoRestante] = useState(900); 
   const [participants, setParticipants] = useState([
-    { name: '', email: '', phone: '', emergency: '', cpf: '' }
+    { name: '', email: '', phone: '', emergency_name: '', emergency_phone: '', cpf: '' }
   ]);
 
   // === IMAGENS DA SEÇÃO "EXPLORE O CENÁRIO" ===
@@ -69,14 +68,13 @@ const TrilhaBrennand = () => {
     if (carteiraSalva) {
       const ingressos = JSON.parse(carteiraSalva);
       setMeusIngressos(ingressos);
-      
       setTelaAtual('pix');
       setStatusPagamento('pago');
     }
   }, []);
 
   const comprarMaisIngressos = () => {
-    setParticipants([{ name: '', email: '', phone: '', emergency: '', cpf: '' }]);
+    setParticipants([{ name: '', email: '', phone: '', emergency_name: '', emergency_phone: '', cpf: '' }]);
     setPaymentId(null);
     setStatusPagamento('pendente');
     setTelaAtual('formulario');
@@ -125,14 +123,11 @@ const TrilhaBrennand = () => {
           
           if (data.status === 'approved') {
             setStatusPagamento('pago');
-            
-            // ADICIONA OS NOVOS INGRESSOS NA CARTEIRA SEM APAGAR OS VELHOS
             setMeusIngressos(prev => {
               const novaCarteira = [...prev, ...participants];
               localStorage.setItem('@trilhabrennand:carteira', JSON.stringify(novaCarteira));
               return novaCarteira;
             });
-
             clearInterval(intervalo);
           }
         } catch (err) {
@@ -149,11 +144,11 @@ const TrilhaBrennand = () => {
     setParticipants(newParticipants);
   };
 
-  const addParticipant = () => setParticipants([...participants, { name: '', email: '', phone: '', emergency: '', cpf: '' }]);
+  const addParticipant = () => setParticipants([...participants, { name: '', email: '', phone: '', emergency_name: '', emergency_phone: '', cpf: '' }]);
 
   const updateParticipant = (index: number, field: string, value: string) => {
     const newParticipants = [...participants];
-    if (field === 'phone') {
+    if (field === 'phone' || field === 'emergency_phone') {
       let v = value.replace(/\D/g, ""); 
       if (v.length > 11) v = v.slice(0, 11); 
       if (v.length > 2) v = `(${v.slice(0, 2)}) ${v.slice(2)}`; 
@@ -182,15 +177,19 @@ const TrilhaBrennand = () => {
 
     if (loading) return;
 
+    // 🚀 LÓGICA ATUALIZADA: Valida tudo só para o Titular. Acompanhantes só precisam de Nome.
     for (let i = 0; i < participants.length; i++) {
       const p = participants[i];
-      if (p.name.trim().length < 3) { setErrorMsg(`Preencha o nome do Participante ${i + 1}.`); return; }
-      if (p.phone.replace(/\D/g, '').length < 10) { setErrorMsg(`WhatsApp incompleto no Participante ${i + 1}.`); return; }
-      if (p.cpf.replace(/\D/g, '').length < 11) { setErrorMsg(`CPF incompleto no Participante ${i + 1}.`); return; }
+      if (p.name.trim().length < 3) { setErrorMsg(i === 0 ? "Preencha o Nome do Titular." : `Preencha o nome do Acompanhante ${i}.`); return; }
+      
       if (i === 0) {
+        if (p.phone.replace(/\D/g, '').length < 10) { setErrorMsg("WhatsApp incompleto no Titular."); return; }
+        if (p.cpf.replace(/\D/g, '').length < 11) { setErrorMsg("CPF incompleto no Titular."); return; }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(p.email)) { setErrorMsg("Digite um e-mail válido."); return; }
-        if (p.emergency.trim().length < 5) { setErrorMsg("Preencha o Contato de Emergência."); return; }
+        if (!emailRegex.test(p.email)) { setErrorMsg("Digite um e-mail válido para o Titular."); return; }
+        if (p.emergency_name.trim().length < 2 || p.emergency_phone.replace(/\D/g, '').length < 10) { 
+          setErrorMsg("Preencha o Nome e o Telefone de Emergência."); return; 
+        }
       }
     }
 
@@ -201,21 +200,23 @@ const TrilhaBrennand = () => {
 
     try {
       const mainEmail = participants[0].email;
-      const cpfsParaLimpar = participants.map(p => p.cpf.replace(/\D/g, ''));
+      const cpfPrincipal = participants[0].cpf.replace(/\D/g, '');
 
+      // 🚀 Só limpa inscrições pendentes atreladas ao CPF do titular para não quebrar o banco
       await supabase
         .from('inscricao_trilha')
         .delete()
-        .in('cpf', cpfsParaLimpar)
+        .eq('cpf', cpfPrincipal)
         .eq('pago', false);
 
-      const promises = participants.map(p => 
+      // 🚀 Salva no banco usando os dados de contato do Titular para todos
+      const promises = participants.map((p, idx) => 
         supabase.from('inscricao_trilha').insert([{ 
           nome: p.name, 
-          email: p.email || mainEmail, 
-          telefone: p.phone,
-          cpf: p.cpf.replace(/\D/g, ''),
-          contato_emergencia: participants[0].emergency,
+          email: mainEmail, 
+          telefone: participants[0].phone,
+          cpf: idx === 0 ? cpfPrincipal : '', 
+          contato_emergencia: `${participants[0].emergency_name} - ${participants[0].emergency_phone}`,
           pago: false 
         }])
       );
@@ -239,7 +240,7 @@ const TrilhaBrennand = () => {
           valor: valorTotal,
           email: mainEmail,
           nome: participants[0].name,
-          cpf: participants[0].cpf.replace(/\D/g, '') 
+          cpf: cpfPrincipal 
         })
       });
 
@@ -341,7 +342,7 @@ const TrilhaBrennand = () => {
               <h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">Descrição do evento</h2>
               <div className="space-y-6 text-zinc-700 text-lg leading-relaxed">
                 <p className="text-zinc-900 font-bold italic">Natureza, Aventura e Boas Energias! Vem com a gente!</p>
-                <p>O grupo <span className="text-emerald-600 font-bold">Invasores</span> convida você para um percurso incrível de <strong>6 KM</strong> de total imersão na natureza, explorando as rotas da belíssima Cachoeira do Brennand.</p>
+                <p>O grupo <span className="text-emerald-600 font-bold">Vem Para Trilha</span> convida você para um percurso incrível de <strong>6 KM</strong> de total imersão na natureza, explorando as rotas da belíssima Cachoeira do Brennand.</p>
                 <p>Esta é a oportunidade perfeita para sair da rotina e superar novos desafios ao lado da tropa. Nossa trilha foi planejada para ser segura, acompanhada por guias experientes, e o grande prêmio é o nosso tradicional banho de cachoeira para lavar a alma!</p>
               </div>
               <div className="mt-10">
@@ -420,38 +421,58 @@ const TrilhaBrennand = () => {
                       <div key={index} className="p-6 rounded-3xl bg-zinc-50 border border-zinc-200 relative shadow-inner">
                         {index > 0 && (
                           <div className="flex justify-between items-center mb-6">
+                            <span className="text-xs font-black uppercase text-zinc-500 tracking-widest">Acompanhante {index}</span>
                             <button type="button" onClick={() => removeParticipant(index)} className="text-zinc-400 hover:text-red-500 transition-colors p-1"><Trash2 size={18} /></button>
                           </div>
                         )}
                         <div className="grid grid-cols-1 gap-5">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Nome Completo</label>
+                            <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">
+                              {index === 0 ? "Nome Completo (Titular)" : "Nome do Acompanhante"}
+                            </label>
                             <input type="text" value={participant.name} onChange={e => updateParticipant(index, 'name', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="Ex: João Silva" />
                           </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">WhatsApp</label>
-                            <input type="tel" value={participant.phone} onChange={e => updateParticipant(index, 'phone', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="(81) 99999-9999" />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">CPF</label>
-                            <input type="text" required value={participant.cpf} onChange={e => updateParticipant(index, 'cpf', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="000.000.000-00" />
-                          </div>
+                          
+                          {/* 🚀 LÓGICA ATUALIZADA: SÓ MOSTRA OS OUTROS CAMPOS SE FOR O TITULAR (INDEX 0) */}
                           {index === 0 && (
                             <>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">WhatsApp</label>
+                                <input type="tel" value={participant.phone} onChange={e => updateParticipant(index, 'phone', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="(81) 99999-9999" />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">CPF</label>
+                                <input type="text" required value={participant.cpf} onChange={e => updateParticipant(index, 'cpf', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="000.000.000-00" />
+                              </div>
                               <div className="space-y-1">
                                 <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">E-mail</label>
                                 <input type="email" value={participant.email} onChange={e => updateParticipant(index, 'email', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="seu@gmail.com" />
                               </div>
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Contato de Emergência</label>
-                                <input type="text" value={participant.emergency} onChange={e => updateParticipant(index, 'emergency', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="Nome + Telefone" />
+                              <div className="space-y-1 mt-2">
+                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Contato de Emergência (SOS)</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Nome do SOS"
+                                    value={participant.emergency_name}
+                                    onChange={e => updateParticipant(index, 'emergency_name', e.target.value)}
+                                    className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm"
+                                  />
+                                  <input 
+                                    type="tel" 
+                                    placeholder="(81) 9..."
+                                    value={participant.emergency_phone}
+                                    onChange={e => updateParticipant(index, 'emergency_phone', e.target.value)}
+                                    className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm"
+                                  />
+                                </div>
                               </div>
                             </>
                           )}
                         </div>
                       </div>
                     ))}
-                    <button type="button" onClick={addParticipant} className="w-full py-4 border-2 border-dashed border-zinc-300 rounded-2xl text-zinc-500 font-bold hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest"><Plus size={16} /> Comprar outro ingresso</button>
+                    <button type="button" onClick={addParticipant} className="w-full py-4 border-2 border-dashed border-zinc-300 rounded-2xl text-zinc-500 font-bold hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest"><Plus size={16} /> Adicionar Acompanhante (+ Ingresso)</button>
                     <div className="flex items-start gap-3 pt-6 border-t border-zinc-200">
                       <input type="checkbox" id="terms" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} className="mt-1 h-5 w-5 accent-emerald-500 cursor-pointer rounded border-zinc-300" />
                       <label htmlFor="terms" className="text-[11px] text-zinc-500 font-bold leading-relaxed cursor-pointer select-none">
@@ -460,7 +481,7 @@ const TrilhaBrennand = () => {
                     </div>
                     {errorMsg && <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-[10px] font-bold flex items-center gap-2"><AlertCircle size={14}/> {errorMsg}</div>}
                     <button disabled={loading} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-emerald-500/30 transition-all uppercase tracking-widest flex items-center justify-center gap-3 text-sm mt-4">
-                      {loading ? <Loader2 className="animate-spin" /> : <>Finalizar (R$ {formatarMoeda(calcularValorBase(participants.length) + taxaPix)}) <ChevronRight size={20} /></>}
+                      {loading ? <Loader2 className="animate-spin" /> : <>Finalizar Compra (R$ {formatarMoeda(calcularValorBase(participants.length) + taxaPix)}) <ChevronRight size={20} /></>}
                     </button>
                   </form>
                 </>
@@ -506,7 +527,7 @@ const TrilhaBrennand = () => {
                               </div>
                               <div className="space-y-6 relative z-10">
                                 <div>
-                                  <p className="text-[10px] uppercase text-zinc-400 font-bold tracking-[0.2em] mb-1">Invasor Titular</p>
+                                  <p className="text-[10px] uppercase text-zinc-400 font-bold tracking-[0.2em] mb-1">{index === 0 ? 'Titular' : 'Acompanhante'}</p>
                                   <p className="text-zinc-900 font-black text-xl uppercase tracking-tight truncate">{p.name}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
@@ -518,12 +539,14 @@ const TrilhaBrennand = () => {
                                     <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Clock size={10}/> Partida</p>
                                     <p className="text-zinc-800 font-bold text-sm">07:00 AM</p>
                                   </div>
-                                  <div className="col-span-2 border-t border-zinc-200 pt-3 mt-1">
-                                    <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1">
-                                      <AlertTriangle size={10} className="text-red-500"/> Contato SOS
-                                    </p>
-                                    <p className="text-red-600 font-bold text-xs truncate">{p.emergency}</p>
-                                  </div>
+                                  {index === 0 && (
+                                    <div className="col-span-2 border-t border-zinc-200 pt-3 mt-1">
+                                      <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1">
+                                        <AlertTriangle size={10} className="text-red-500"/> Contato SOS
+                                      </p>
+                                      <p className="text-red-600 font-bold text-xs truncate">{p.emergency_name} - {p.emergency_phone}</p>
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="flex flex-col items-center justify-center pt-2">
                                    <div className="h-10 w-full max-w-[200px] flex gap-[3px] justify-center opacity-70">
