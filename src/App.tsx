@@ -328,7 +328,7 @@ const TrilhaBrennand = () => {
         </div>
         <div className="container mx-auto px-6 pb-12 relative z-10">
           
-          <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter mt-1 uppercase leading-none text-white drop-shadow-md">Vem Para Trilha <br/> <span className="text-emerald-500"> Cachoeira do Brennand</span></h1>
+          <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter mt-1 uppercase leading-none text-white drop-shadow-md">Trilha <br/> <span className="text-emerald-500"> Cachoeira do Brennand</span></h1>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-8">
             <a href="#inscricao" onClick={scrollToForm} className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-xl shadow-lg transition-all uppercase tracking-widest text-[10px]">Garantir Ingresso <ChevronRight size={14} /></a>
           </motion.div>
@@ -342,8 +342,8 @@ const TrilhaBrennand = () => {
               <h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">Descrição do evento</h2>
               <div className="space-y-6 text-zinc-700 text-lg leading-relaxed">
                 <p className="text-zinc-900 font-bold italic">Natureza, Aventura e Boas Energias! Vem com a gente!</p>
-                <p>O grupo <span className="text-emerald-600 font-bold">Vem Para Trilha</span> convida você para um percurso incrível de <strong>6 KM</strong> de total imersão na natureza, explorando as rotas da belíssima Cachoeira do Brennand.</p>
-                <p>Esta é a oportunidade perfeita para sair da rotina e superar novos desafios ao lado da tropa. Nossa trilha foi planejada para ser segura, acompanhada por guias experientes, e o grande prêmio é o nosso tradicional banho de cachoeira para lavar a alma!</p>
+                <p>O grupo <span className="text-emerald-600 font-bold">invasores</span> convida você para um percurso incrível de <strong>6 KM</strong> de total imersão na natureza, explorando as rotas da belíssima Cachoeira do Brennand.</p>
+                <p>Esta é a oportunidade perfeita para sair da rotina e superar seus propios limites. Nossa trilha foi planejada para ser segura, acompanhada por guias experientes, e o grande prêmio é o nosso tradicional banho de cachoeira para lavar a alma!</p>
               </div>
               <div className="mt-10">
                 <h2 className="text-xl font-black uppercase italic mb-6 text-zinc-900 tracking-widest">Explore o Cenário</h2>
