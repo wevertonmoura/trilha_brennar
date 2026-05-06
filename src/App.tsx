@@ -15,6 +15,7 @@ const TrilhaBrennand = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
+  const [vagasEsgotadas, setVagasEsgotadas] = useState(false);
   
   const [telaAtual, setTelaAtual] = useState<'formulario' | 'pix' | 'login_admin' | 'admin'>('formulario');
   const [statusPagamento, setStatusPagamento] = useState<'pendente' | 'pago'>('pendente');
@@ -31,7 +32,6 @@ const TrilhaBrennand = () => {
   const linkInstagram = "https://www.instagram.com/invasores_081?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="; 
   const linkSuporte = "https://wa.me/5581994350798?text=Olá,%20preciso%20de%20ajuda%20com%20meu%20ingresso%20da%20Trilha%20Cachoeira%20do%20Brennand."; 
   
-  // === VALORES E CASADINHA ===
   // === VALORES E CASADINHA ===
   const valorIndividual = 30; 
   const valorCasadinha = 50;
@@ -61,6 +61,29 @@ const TrilhaBrennand = () => {
     "/foto3.jpg", 
     "/foto4.jpg"
   ];
+
+  // === CHECAR LIMITE DE 50 VAGAS PAGAS ===
+  useEffect(() => {
+    const verificarVagasDisponiveis = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('inscricao_trilha')
+          .select('*', { count: 'exact', head: true })
+          .eq('pago', true);
+
+        if (error) throw error;
+
+        // Se tiver 50 ou mais pagamentos confirmados, esgota as vagas
+        if (count !== null && count >= 50) {
+          setVagasEsgotadas(true);
+        }
+      } catch (err) {
+        console.error("Erro ao checar limite de vagas:", err);
+      }
+    };
+
+    verificarVagasDisponiveis();
+  }, []);
 
   // === RECUPERAR A CARTEIRA SALVA AO ABRIR O SITE ===
   useEffect(() => {
@@ -177,7 +200,6 @@ const TrilhaBrennand = () => {
 
     if (loading) return;
 
-    // 🚀 LÓGICA ATUALIZADA: Valida tudo só para o Titular. Acompanhantes só precisam de Nome.
     for (let i = 0; i < participants.length; i++) {
       const p = participants[i];
       if (p.name.trim().length < 3) { setErrorMsg(i === 0 ? "Preencha o Nome do Titular." : `Preencha o nome do Acompanhante ${i}.`); return; }
@@ -202,14 +224,12 @@ const TrilhaBrennand = () => {
       const mainEmail = participants[0].email;
       const cpfPrincipal = participants[0].cpf.replace(/\D/g, '');
 
-      // 🚀 Só limpa inscrições pendentes atreladas ao CPF do titular para não quebrar o banco
       await supabase
         .from('inscricao_trilha')
         .delete()
         .eq('cpf', cpfPrincipal)
         .eq('pago', false);
 
-      // 🚀 Salva no banco usando os dados de contato do Titular para todos
       const promises = participants.map((p, idx) => 
         supabase.from('inscricao_trilha').insert([{ 
           nome: p.name, 
@@ -416,74 +436,84 @@ const TrilhaBrennand = () => {
                     </button>
                   )}
 
-                  <form onSubmit={handleSubmit} className="space-y-8">
-                    {participants.map((participant, index) => (
-                      <div key={index} className="p-6 rounded-3xl bg-zinc-50 border border-zinc-200 relative shadow-inner">
-                        {index > 0 && (
-                          <div className="flex justify-between items-center mb-6">
-                            <span className="text-xs font-black uppercase text-zinc-500 tracking-widest">Acompanhante {index}</span>
-                            <button type="button" onClick={() => removeParticipant(index)} className="text-zinc-400 hover:text-red-500 transition-colors p-1"><Trash2 size={18} /></button>
-                          </div>
-                        )}
-                        <div className="grid grid-cols-1 gap-5">
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">
-                              {index === 0 ? "Nome Completo (Titular)" : "Nome do Acompanhante"}
-                            </label>
-                            <input type="text" value={participant.name} onChange={e => updateParticipant(index, 'name', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="Ex: João Silva" />
-                          </div>
-                          
-                          {/* 🚀 LÓGICA ATUALIZADA: SÓ MOSTRA OS OUTROS CAMPOS SE FOR O TITULAR (INDEX 0) */}
-                          {index === 0 && (
-                            <>
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">WhatsApp</label>
-                                <input type="tel" value={participant.phone} onChange={e => updateParticipant(index, 'phone', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="(81) 99999-9999" />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">CPF</label>
-                                <input type="text" required value={participant.cpf} onChange={e => updateParticipant(index, 'cpf', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="000.000.000-00" />
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">E-mail</label>
-                                <input type="email" value={participant.email} onChange={e => updateParticipant(index, 'email', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="seu@gmail.com" />
-                              </div>
-                              <div className="space-y-1 mt-2">
-                                <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Contato de Emergência (SOS)</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                  <input 
-                                    type="text" 
-                                    placeholder="Nome do SOS"
-                                    value={participant.emergency_name}
-                                    onChange={e => updateParticipant(index, 'emergency_name', e.target.value)}
-                                    className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm"
-                                  />
-                                  <input 
-                                    type="tel" 
-                                    placeholder="(81) 9..."
-                                    value={participant.emergency_phone}
-                                    onChange={e => updateParticipant(index, 'emergency_phone', e.target.value)}
-                                    className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm"
-                                  />
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    <button type="button" onClick={addParticipant} className="w-full py-4 border-2 border-dashed border-zinc-300 rounded-2xl text-zinc-500 font-bold hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest"><Plus size={16} /> Adicionar Acompanhante (+ Ingresso)</button>
-                    <div className="flex items-start gap-3 pt-6 border-t border-zinc-200">
-                      <input type="checkbox" id="terms" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} className="mt-1 h-5 w-5 accent-emerald-500 cursor-pointer rounded border-zinc-300" />
-                      <label htmlFor="terms" className="text-[11px] text-zinc-500 font-bold leading-relaxed cursor-pointer select-none">
-                        Aceito o Termo de Responsabilidade (declaro estar em boas condições de saúde) e estou ciente de que a inscrição é pessoal e intransferível, não havendo devolução do valor em caso de desistência.
-                      </label>
+                  {vagasEsgotadas ? (
+                    <div className="bg-red-50 border border-red-200 text-red-600 p-8 rounded-[2rem] text-center shadow-inner mt-4">
+                      <AlertTriangle size={48} className="mx-auto mb-4 text-red-500 animate-pulse" />
+                      <h3 className="text-2xl font-black uppercase tracking-widest mb-2">Vagas Esgotadas!</h3>
+                      <p className="text-sm font-bold text-red-800/80 leading-relaxed">
+                        Infelizmente atingimos o limite máximo de 50 participantes confirmados para garantir a segurança da trilha. 
+                        Fique de olho no nosso grupo para os próximos eventos!
+                      </p>
                     </div>
-                    {errorMsg && <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-[10px] font-bold flex items-center gap-2"><AlertCircle size={14}/> {errorMsg}</div>}
-                    <button disabled={loading} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-emerald-500/30 transition-all uppercase tracking-widest flex items-center justify-center gap-3 text-sm mt-4">
-                      {loading ? <Loader2 className="animate-spin" /> : <>Finalizar Compra (R$ {formatarMoeda(calcularValorBase(participants.length) + taxaPix)}) <ChevronRight size={20} /></>}
-                    </button>
-                  </form>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                      {participants.map((participant, index) => (
+                        <div key={index} className="p-6 rounded-3xl bg-zinc-50 border border-zinc-200 relative shadow-inner">
+                          {index > 0 && (
+                            <div className="flex justify-between items-center mb-6">
+                              <span className="text-xs font-black uppercase text-zinc-500 tracking-widest">Acompanhante {index}</span>
+                              <button type="button" onClick={() => removeParticipant(index)} className="text-zinc-400 hover:text-red-500 transition-colors p-1"><Trash2 size={18} /></button>
+                            </div>
+                          )}
+                          <div className="grid grid-cols-1 gap-5">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">
+                                {index === 0 ? "Nome Completo (Titular)" : "Nome do Acompanhante"}
+                              </label>
+                              <input type="text" value={participant.name} onChange={e => updateParticipant(index, 'name', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="Ex: João Silva" />
+                            </div>
+                            
+                            {index === 0 && (
+                              <>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">WhatsApp</label>
+                                  <input type="tel" value={participant.phone} onChange={e => updateParticipant(index, 'phone', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="(81) 99999-9999" />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">CPF</label>
+                                  <input type="text" required value={participant.cpf} onChange={e => updateParticipant(index, 'cpf', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="000.000.000-00" />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">E-mail</label>
+                                  <input type="email" value={participant.email} onChange={e => updateParticipant(index, 'email', e.target.value)} className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm placeholder-zinc-400" placeholder="seu@gmail.com" />
+                                </div>
+                                <div className="space-y-1 mt-2">
+                                  <label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Contato de Emergência (SOS)</label>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <input 
+                                      type="text" 
+                                      placeholder="Nome do SOS"
+                                      value={participant.emergency_name}
+                                      onChange={e => updateParticipant(index, 'emergency_name', e.target.value)}
+                                      className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm"
+                                    />
+                                    <input 
+                                      type="tel" 
+                                      placeholder="(81) 99999-9999"
+                                      value={participant.emergency_phone}
+                                      onChange={e => updateParticipant(index, 'emergency_phone', e.target.value)}
+                                      className="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all shadow-sm"
+                                    />
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      <button type="button" onClick={addParticipant} className="w-full py-4 border-2 border-dashed border-zinc-300 rounded-2xl text-zinc-500 font-bold hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest"><Plus size={16} /> Adicionar Acompanhante (+ Ingresso)</button>
+                      <div className="flex items-start gap-3 pt-6 border-t border-zinc-200">
+                        <input type="checkbox" id="terms" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} className="mt-1 h-5 w-5 accent-emerald-500 cursor-pointer rounded border-zinc-300" />
+                        <label htmlFor="terms" className="text-[11px] text-zinc-500 font-bold leading-relaxed cursor-pointer select-none">
+                          Aceito o Termo de Responsabilidade (declaro estar em boas condições de saúde) e estou ciente de que a inscrição é pessoal e intransferível, não havendo devolução do valor em caso de desistência.
+                        </label>
+                      </div>
+                      {errorMsg && <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-[10px] font-bold flex items-center gap-2"><AlertCircle size={14}/> {errorMsg}</div>}
+                      <button disabled={loading} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-emerald-500/30 transition-all uppercase tracking-widest flex items-center justify-center gap-3 text-sm mt-4">
+                        {loading ? <Loader2 className="animate-spin" /> : <>Finalizar Compra (R$ {formatarMoeda(calcularValorBase(participants.length) + taxaPix)}) <ChevronRight size={20} /></>}
+                      </button>
+                    </form>
+                  )}
                 </>
               ) : (
                 <div className="text-center space-y-8 animate-in fade-in zoom-in duration-500">

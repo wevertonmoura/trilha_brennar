@@ -66,7 +66,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       });
 
       if (res.ok) {
-        // Tira o participante da tela na mesma hora
         setAdminData(prevData => prevData.filter(item => item.id !== id));
       } else {
         throw new Error("Acesso negado");
@@ -80,29 +79,50 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   };
 
   // === FUNÇÃO PARA CHAMAR NO WHATSAPP ===
-  const chamarNoWhatsApp = (telefone: string, nome: string) => {
-    let numeroFormatado = telefone.replace(/\D/g, ''); // Tira traços e parênteses
-    
-    // Adiciona o código do Brasil (55) se a pessoa não tiver digitado
+  const chamarNoWhatsApp = (telefone: string) => {
+    // 1. Agrupa todo mundo que se cadastrou com esse mesmo telefone
+    const grupo = adminData.filter(p => p.telefone === telefone);
+    if (grupo.length === 0) return;
+
+    // 2. Formata o número para a URL do WhatsApp
+    let numeroFormatado = telefone.replace(/\D/g, ''); 
     if (numeroFormatado.length === 10 || numeroFormatado.length === 11) {
       numeroFormatado = '55' + numeroFormatado;
     }
 
-    const primeiroNome = nome.split(' ')[0]; // Pega só o primeiro nome pra ser mais amigável
-    const mensagem = encodeURIComponent(`Fala ${primeiroNome}! Aqui é da organização da Trilha Cachoeira do Brennand. Vi que sua inscrição está confirmada. Você conseguiu entrar no nosso grupo oficial do WhatsApp?`);
+    // 3. Identifica o titular (quem tem CPF preenchido) e os acompanhantes
+    const titularObj = grupo.find(p => p.cpf && p.cpf.trim() !== '') || grupo[0];
+    const titular = titularObj.nome.split(' ')[0];
+    const acompanhantes = grupo.filter(p => p.id !== titularObj.id).map(p => p.nome.split(' ')[0]);
+
+    // 4. Constrói a mensagem dinâmica
+    let saudacao = "";
+    let textoVaga = "";
+    let textoInstagram = "";
+
+    if (acompanhantes.length > 0) {
+      // Comprou casadinha/acompanhado
+      const nomesAcompanhantes = acompanhantes.join(' e ');
+      saudacao = `Fala ${titular} e ${nomesAcompanhantes}! 🚀`;
+      textoVaga = "a compra de vocês está CONFIRMADA";
+      textoInstagram = "os @ do Instagram de vocês pra gente montar aqueles banners tops e postar as presenças confirmadas";
+    } else {
+      // Comprou sozinho
+      saudacao = `Fala ${titular}! 🚀`;
+      textoVaga = "sua compra está CONFIRMADA";
+      textoInstagram = "o seu @ do Instagram pra gente montar aquele banner top e postar a sua presença confirmada";
+    }
+
+    const textoMensagem = `${saudacao}\n\nPassando para avisar que o pagamento foi recebido e ${textoVaga} para a Trilha da Cachoeira do Brennand! 🍃🎒\n\nAgora manda aqui ${textoInstagram} lá no Instagram dos @invasores_081! 📸🔥`;
     
-    window.open(`https://wa.me/${numeroFormatado}?text=${mensagem}`, '_blank');
+    window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
   };
 
   // === PLANILHA DE EMERGÊNCIA (DIA DO EVENTO) ===
   const exportarPlanilha = () => {
-    // 1. Filtra para pegar APENAS quem já está PAGO
     const pessoasConfirmadas = adminData.filter(p => p.pago === true);
-
-    // 2. Define apenas as duas colunas solicitadas
     const headers = ["Nome Completo", "Contato de Emergência"];
     
-    // 3. Monta as linhas apenas com Nome e Contato SOS
     const csvRows = pessoasConfirmadas.map(p => {
       return [ 
         `"${p.nome}"`, 
@@ -116,7 +136,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     
-    // 4. Nome do arquivo atualizado para o dia da trilha
     link.setAttribute("download", `Lista_Emergencia_Trilha_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
     document.body.appendChild(link);
     link.click();
@@ -124,7 +143,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   };
 
   const totalPagos = adminData.filter(p => p.pago).length;
-  // A MÁGICA DO VALOR ATUALIZADA AQUI 👇
   const arrecadado = totalPagos * 30; 
 
   const dadosFiltrados = adminData.filter(p => 
@@ -202,7 +220,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                 className="bg-transparent border-none outline-none text-base md:text-lg font-bold text-white w-full placeholder:text-zinc-600 focus:ring-0"
               />
             </div>
-            {/* O BOTÃO AGORA SÓ BAIXA A LISTA VIP DE EMERGÊNCIA */}
             <button onClick={exportarPlanilha} className="w-full md:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-emerald-500/30">
               <Download size={18} /> Baixar Lista SOS
             </button>
@@ -244,7 +261,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                     </td>
                     <td className="p-6 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        {/* STATUS PAGO OU PENDENTE */}
                         {p.pago ? (
                           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
@@ -267,16 +283,14 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                           </>
                         )}
 
-                        {/* BOTÃO: CHAMAR NO WHATSAPP */}
                         <button 
-                          onClick={() => chamarNoWhatsApp(p.telefone, p.nome)}
+                          onClick={() => chamarNoWhatsApp(p.telefone)}
                           className="bg-zinc-800 hover:bg-[#25D366] hover:text-white text-zinc-400 p-2 rounded-full transition-colors border border-zinc-700 hover:border-[#25D366] group-hover:opacity-100 opacity-60 flex items-center justify-center ml-2"
                           title="Enviar mensagem no WhatsApp"
                         >
                           <MessageCircle size={16} />
                         </button>
 
-                        {/* BOTÃO EXCLUIR */}
                         <button 
                           onClick={() => excluirParticipante(p.id, p.nome)}
                           disabled={excluindoId === p.id}
