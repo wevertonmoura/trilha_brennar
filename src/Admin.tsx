@@ -142,8 +142,54 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     document.body.removeChild(link);
   };
 
-  const totalPagos = adminData.filter(p => p.pago).length;
-  const arrecadado = totalPagos * 30; 
+  // === PLANILHA COMPLETA (TODOS OS DADOS DOS PAGOS) ===
+  const exportarPlanilhaCompleta = () => {
+    const pessoasConfirmadas = adminData.filter(p => p.pago === true);
+    const headers = ["Nome Completo", "WhatsApp", "CPF", "Contato de Emergência"];
+    
+    const csvRows = pessoasConfirmadas.map(p => {
+      return [ 
+        `"${p.nome}"`, 
+        `"${p.telefone}"`,
+        `"${p.cpf || 'Não informado'}"`,
+        `"${p.contato_emergencia || 'Não informado'}"` 
+      ].join(';'); 
+    });
+    
+    const csvContent = [headers.join(';'), ...csvRows].join('\n');
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    
+    link.setAttribute("download", `Invasores_Confirmados_Trilha_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const pagos = adminData.filter(p => p.pago);
+  const totalPagos = pagos.length;
+  
+  // NOVA INTELIGÊNCIA FINANCEIRA: Calcula o valor exato considerando as Casadinhas
+  const calcularArrecadadoExato = () => {
+    const gruposPorTelefone: Record<string, number> = {};
+    
+    pagos.forEach(p => {
+      gruposPorTelefone[p.telefone] = (gruposPorTelefone[p.telefone] || 0) + 1;
+    });
+
+    let total = 0;
+    Object.values(gruposPorTelefone).forEach(qtd => {
+      const pares = Math.floor(qtd / 2);
+      const avulsos = qtd % 2;
+      total += (pares * 50) + (avulsos * 30);
+    });
+    
+    return total;
+  };
+
+  const arrecadado = calcularArrecadadoExato();
 
   const dadosFiltrados = adminData.filter(p => 
     p.nome.toLowerCase().includes(busca.toLowerCase()) || 
@@ -220,9 +266,16 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                 className="bg-transparent border-none outline-none text-base md:text-lg font-bold text-white w-full placeholder:text-zinc-600 focus:ring-0"
               />
             </div>
-            <button onClick={exportarPlanilha} className="w-full md:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-emerald-500/30">
-              <Download size={18} /> Baixar Lista SOS
-            </button>
+            
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
+              <button onClick={exportarPlanilha} className="w-full sm:w-auto bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-red-500/30">
+                <ShieldAlert size={18} /> Lista SOS
+              </button>
+              
+              <button onClick={exportarPlanilhaCompleta} className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-emerald-500/30">
+                <Download size={18} /> Planilha Completa
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
