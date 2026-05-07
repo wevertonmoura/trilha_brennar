@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Trophy, ChevronRight, Clock, Ticket, AlertTriangle, Mountain, Droplets, Coffee, Loader2, AlertCircle, ShieldCheck, Plus, Trash2, Waves, Info, VolumeX, QrCode, CheckCircle, X, Maximize2, Instagram, Users, ArrowRight, Lock, ArrowLeft, Copy, Send } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ChevronRight, Clock, Ticket, AlertTriangle, Mountain, Droplets, Coffee, Loader2, AlertCircle, ShieldCheck, Plus, Trash2, Waves, Info, QrCode, CheckCircle, X, Maximize2, Users, ArrowRight, Lock, ArrowLeft, Copy, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import Admin from './Admin'; 
@@ -33,11 +33,6 @@ const TrilhaBrennand = () => {
   // === CARTEIRA DE INGRESSOS VIRTUAL ===
   const [meusIngressos, setMeusIngressos] = useState<any[]>([]);
 
-  // === 🔗 LINKS ===
-  const linkGrupoWhats = "https://chat.whatsapp.com/H5DWJOz0wcC2PntYSq1t8y"; 
-  const linkInstagram = "https://www.instagram.com/invasores_081?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="; 
-  const linkSuporte = "https://wa.me/5581994350798?text=Olá,%20preciso%20de%20ajuda%20com%20meu%20ingresso%20da%20Trilha%20Cachoeira%20do%20Brennand."; 
-  
   // === VALORES E CASADINHA ===
   const valorIndividual = 30; 
   const valorCasadinha = 50;
