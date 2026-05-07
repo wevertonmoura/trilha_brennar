@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Trophy, ChevronRight, Clock, Ticket, AlertTriangle, Mountain, Droplets, Coffee, Loader2, AlertCircle, ShieldCheck, Plus, Trash2, Waves, Info, VolumeX, Copy, QrCode, CheckCircle, X, Maximize2, Instagram, Users, ArrowRight, Lock, ArrowLeft } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ChevronRight, Clock, Ticket, AlertTriangle, Mountain, Droplets, Coffee, Loader2, AlertCircle, ShieldCheck, Plus, Trash2, Waves, Info, VolumeX, QrCode, CheckCircle, X, Maximize2, Instagram, Users, ArrowRight, Lock, ArrowLeft, Copy, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import Admin from './Admin'; 
@@ -17,6 +17,12 @@ const TrilhaBrennand = () => {
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
   const [vagasEsgotadas, setVagasEsgotadas] = useState(false);
   
+  // === ESTADOS DA LISTA DE ESPERA ===
+  const [nomeEspera, setNomeEspera] = useState('');
+  const [telefoneEspera, setTelefoneEspera] = useState('');
+  const [esperaLoading, setEsperaLoading] = useState(false);
+  const [esperaSucesso, setEsperaSucesso] = useState(false);
+
   const [telaAtual, setTelaAtual] = useState<'formulario' | 'pix' | 'login_admin' | 'admin'>('formulario');
   const [statusPagamento, setStatusPagamento] = useState<'pendente' | 'pago'>('pendente');
   const [paymentId, setPaymentId] = useState<string | null>(null);
@@ -54,13 +60,7 @@ const TrilhaBrennand = () => {
     { name: '', email: '', phone: '', emergency_name: '', emergency_phone: '', cpf: '' }
   ]);
 
-  // === IMAGENS DA SEÇÃO "EXPLORE O CENÁRIO" ===
-  const scenarioImages = [
-    "/foto1.jpg", 
-    "/foto2.jpg", 
-    "/foto3.jpg", 
-    "/foto4.jpg"
-  ];
+  const scenarioImages = ["/foto1.jpg", "/foto2.jpg", "/foto3.jpg", "/foto4.jpg"];
 
   // === CHECAR LIMITE DE 50 VAGAS PAGAS ===
   useEffect(() => {
@@ -72,8 +72,6 @@ const TrilhaBrennand = () => {
           .eq('pago', true);
 
         if (error) throw error;
-
-        // Se tiver 50 ou mais pagamentos confirmados, esgota as vagas
         if (count !== null && count >= 50) {
           setVagasEsgotadas(true);
         }
@@ -81,11 +79,9 @@ const TrilhaBrennand = () => {
         console.error("Erro ao checar limite de vagas:", err);
       }
     };
-
     verificarVagasDisponiveis();
   }, []);
 
-  // === RECUPERAR A CARTEIRA SALVA AO ABRIR O SITE ===
   useEffect(() => {
     const carteiraSalva = localStorage.getItem('@trilhabrennand:carteira');
     if (carteiraSalva) {
@@ -103,7 +99,6 @@ const TrilhaBrennand = () => {
     setTelaAtual('formulario');
   };
 
-  // === LÓGICA DE ACESSO AO ADMIN ===
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('admin') === 'true') {
@@ -135,7 +130,6 @@ const TrilhaBrennand = () => {
     return `${m}:${s}`;
   };
 
-  // CHECAGEM DO PAGAMENTO
   useEffect(() => {
     let intervalo: any;
     if (paymentId && statusPagamento === 'pendente' && telaAtual === 'pix') {
@@ -195,9 +189,42 @@ const TrilhaBrennand = () => {
     document.getElementById('inscricao')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // === FUNÇÃO DA LISTA DE ESPERA ===
+  const handleListaEspera = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (nomeEspera.trim().length < 3) {
+      setErrorMsg("Por favor, informe seu nome completo.");
+      return;
+    }
+    if (telefoneEspera.replace(/\D/g, '').length < 10) {
+      setErrorMsg("Por favor, informe um WhatsApp válido.");
+      return;
+    }
+    
+    setEsperaLoading(true);
+    setErrorMsg('');
+
+    try {
+      const { error } = await supabase.from('lista_espera').insert([
+        { 
+          nome: nomeEspera, 
+          telefone: telefoneEspera, 
+          interesse: 'Edição 2 (Junho)' 
+        }
+      ]);
+
+      if (error) throw error;
+      setEsperaSucesso(true);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Erro ao salvar. Tente novamente ou chame no WhatsApp.");
+    } finally {
+      setEsperaLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (loading) return;
 
     for (let i = 0; i < participants.length; i++) {
@@ -245,23 +272,14 @@ const TrilhaBrennand = () => {
       const valorTotal = Number((valorBase + taxaPix).toFixed(2)); 
       
       const resultados = await Promise.all(promises);
-      
       for (const res of resultados) {
-        if (res.error) {
-          console.error("Erro do Banco:", res.error);
-          throw new Error("Erro ao salvar. Verifique a configuração do banco de dados.");
-        }
+        if (res.error) throw new Error("Erro ao salvar. Verifique a configuração do banco de dados.");
       }
       
       const response = await fetch('/api/gerar-pix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          valor: valorTotal,
-          email: mainEmail,
-          nome: participants[0].name,
-          cpf: cpfPrincipal 
-        })
+        body: JSON.stringify({ valor: valorTotal, email: mainEmail, nome: participants[0].name, cpf: cpfPrincipal })
       });
 
       const mpData = await response.json();
@@ -273,7 +291,6 @@ const TrilhaBrennand = () => {
         setTelaAtual('pix');
         setTempoRestante(900); 
       } else {
-        console.error("Erro do Mercado Pago:", mpData);
         throw new Error("CPF inválido ou não autorizado. Verifique os dados e tente novamente.");
       }
     } catch (err: any) {
@@ -290,7 +307,6 @@ const TrilhaBrennand = () => {
     setTimeout(() => setCopiado(false), 3000); 
   };
 
-  // === RENDERIZAÇÃO: LOGIN ADMIN ===
   if (telaAtual === 'login_admin') {
     return (
       <div className="min-h-screen bg-zinc-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -311,9 +327,7 @@ const TrilhaBrennand = () => {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Senha Mestre</label>
                 <input type="password" autoFocus placeholder="••••••••••••" value={senhaAdmin} onChange={(e) => setSenhaAdmin(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-4 text-zinc-900 text-center text-lg font-mono tracking-[0.2em] outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all shadow-inner" />
               </div>
-              {erroLoginAdmin && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-bold p-3 rounded-lg flex items-center justify-center gap-2 animate-in shake"><AlertCircle size={16} /> {erroLoginAdmin}</div>
-              )}
+              {erroLoginAdmin && <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-bold p-3 rounded-lg flex items-center justify-center gap-2 animate-in shake"><AlertCircle size={16} /> {erroLoginAdmin}</div>}
               <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2">Desbloquear Cofre <ChevronRight size={16} /></button>
             </form>
             <button onClick={() => setTelaAtual('formulario')} className="w-full mt-6 text-zinc-500 hover:text-zinc-900 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"><ArrowLeft size={12} /> Voltar para a Inscrição</button>
@@ -323,12 +337,10 @@ const TrilhaBrennand = () => {
     );
   }
 
-  // === RENDERIZAÇÃO: PAINEL ADMIN ===
   if (telaAtual === 'admin') {
     return <Admin senha={senhaAdmin} formatarMoeda={formatarMoeda} fecharAdmin={() => setTelaAtual('formulario')} />;
   }
 
-  // === RENDERIZAÇÃO: SITE PRINCIPAL ===
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900 font-sans selection:bg-emerald-200 overflow-x-hidden">
       <AnimatePresence>
@@ -347,7 +359,6 @@ const TrilhaBrennand = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </div>
         <div className="container mx-auto px-6 pb-12 relative z-10">
-          
           <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter mt-1 uppercase leading-none text-white drop-shadow-md">Trilha <br/> <span className="text-emerald-500"> Cachoeira do Brennand</span></h1>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-8">
             <a href="#inscricao" onClick={scrollToForm} className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-xl shadow-lg transition-all uppercase tracking-widest text-[10px]">Garantir Ingresso <ChevronRight size={14} /></a>
@@ -405,17 +416,6 @@ const TrilhaBrennand = () => {
                 <CheckItem icon={<Trash2 />} text="Sacola para seu lixo" />
               </div>
             </section>
-
-            <section className="space-y-6">
-              <h2 className="text-2xl font-black uppercase italic mb-6 text-emerald-600 tracking-tighter">INFORMAÇÕES IMPORTANTES</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><Ticket className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Investimento</h4><p className="text-sm text-zinc-600 leading-relaxed">Individual: R$ 30,00 | Casadinha: R$ 50,00. Vagas limitadas.</p></div></div>
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><VolumeX className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Som e Natureza</h4><p className="text-sm text-zinc-600 leading-relaxed">Não é permitido o uso de caixas de som em volume alto.</p></div></div>
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><QrCode className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Pagamento via PIX</h4><p className="text-sm text-zinc-600 leading-relaxed">Confirmação automática via PIX. Acréscimo de taxa de <strong className="text-emerald-600">R$ 0,50</strong>.</p></div></div>
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex gap-5"><Coffee className="text-emerald-500 shrink-0" size={32}/><div><h4 className="font-bold text-zinc-900 uppercase text-sm mb-2 tracking-widest">Respeito à Natureza</h4><p className="text-sm text-zinc-600 leading-relaxed">Não deixe nada além de pegadas. Traga todo o seu lixo de volta.</p></div></div>
-                <div className="bg-red-50 p-6 rounded-2xl border border-red-100 flex gap-5"><AlertTriangle className="text-red-500 shrink-0" size={32}/><div><h4 className="font-bold text-red-600 uppercase text-sm mb-2 tracking-widest">Segurança</h4><p className="text-sm text-red-800/80 leading-relaxed">Siga sempre as instruções dos guias do evento.</p></div></div>
-              </div>
-            </section>
           </div>
 
           <div className="lg:col-span-1 mt-10 lg:mt-0">
@@ -424,26 +424,67 @@ const TrilhaBrennand = () => {
                 <>
                   <div className="text-center mb-10">
                     <h2 className="text-4xl font-black uppercase italic tracking-tighter text-zinc-900">INSCRIÇÃO</h2>
-                    <div className="flex flex-col gap-1 mt-2">
-                      <p className="text-emerald-600 text-sm font-bold tracking-widest uppercase">Individual: R$ 30,00</p>
-                      <p className="text-pink-500 text-xs font-black tracking-widest uppercase animate-pulse">🔥 Casadinha: 2 pessoas por R$ 50,00</p>
-                    </div>
+                    {!vagasEsgotadas && (
+                      <div className="flex flex-col gap-1 mt-2">
+                        <p className="text-emerald-600 text-sm font-bold tracking-widest uppercase">Individual: R$ 30,00</p>
+                        <p className="text-pink-500 text-xs font-black tracking-widest uppercase animate-pulse">🔥 Casadinha: 2 pessoas por R$ 50,00</p>
+                      </div>
+                    )}
                   </div>
                   
-                  {meusIngressos.length > 0 && (
+                  {meusIngressos.length > 0 && !vagasEsgotadas && (
                     <button onClick={() => { setTelaAtual('pix'); setStatusPagamento('pago'); }} className="w-full mb-8 bg-zinc-50 hover:bg-zinc-100 border border-emerald-500/30 text-emerald-600 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 uppercase tracking-widest text-xs transition-all shadow-sm">
                       <Ticket size={18} /> Ver meus {meusIngressos.length} Ingressos Salvos
                     </button>
                   )}
 
                   {vagasEsgotadas ? (
-                    <div className="bg-red-50 border border-red-200 text-red-600 p-8 rounded-[2rem] text-center shadow-inner mt-4">
+                    <div className="bg-gradient-to-b from-red-50 to-white border border-red-200 p-8 rounded-[2rem] text-center shadow-inner mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       <AlertTriangle size={48} className="mx-auto mb-4 text-red-500 animate-pulse" />
-                      <h3 className="text-2xl font-black uppercase tracking-widest mb-2">Vagas Esgotadas!</h3>
-                      <p className="text-sm font-bold text-red-800/80 leading-relaxed">
-                        Infelizmente atingimos o limite máximo de 50 participantes confirmados para garantir a segurança da trilha. 
-                        Fique de olho no nosso grupo para os próximos eventos!
+                      <h3 className="text-2xl font-black uppercase tracking-widest mb-2 text-red-600">Lote Esgotado!</h3>
+                      <p className="text-sm font-bold text-zinc-700 leading-relaxed mb-6">
+                        A demanda foi gigante e as vagas para o dia 31/05 acabaram! Mas não se preocupe, estamos organizando a <strong className="text-emerald-600">Edição 2 (Junho)</strong>.
                       </p>
+                      
+                      {esperaSucesso ? (
+                        <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl animate-in zoom-in">
+                          <CheckCircle className="text-emerald-500 mx-auto mb-2" size={32} />
+                          <p className="text-emerald-800 font-bold text-sm uppercase tracking-widest">Tudo Certo!</p>
+                          <p className="text-emerald-600/80 text-xs mt-1">Você está na Lista VIP. Fique de olho no seu WhatsApp.</p>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleListaEspera} className="space-y-4 text-left">
+                          <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-200">
+                            <h4 className="text-[10px] font-black uppercase text-zinc-500 mb-4 tracking-widest text-center">Entre na Lista de Espera VIP</h4>
+                            <div className="space-y-3">
+                              <input 
+                                type="text" 
+                                placeholder="Seu Nome Completo" 
+                                value={nomeEspera}
+                                onChange={e => setNomeEspera(e.target.value)}
+                                className="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all placeholder-zinc-400"
+                              />
+                              <input 
+                                type="tel" 
+                                placeholder="Seu WhatsApp" 
+                                value={telefoneEspera}
+                                onChange={e => {
+                                  let v = e.target.value.replace(/\D/g, ""); 
+                                  if (v.length > 11) v = v.slice(0, 11); 
+                                  if (v.length > 2) v = `(${v.slice(0, 2)}) ${v.slice(2)}`; 
+                                  if (v.length > 10) v = `${v.slice(0, 10)}-${v.slice(10)}`; 
+                                  setTelefoneEspera(v);
+                                }}
+                                className="w-full bg-zinc-50 border border-zinc-300 rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-sm text-zinc-900 transition-all placeholder-zinc-400"
+                              />
+                            </div>
+                            {errorMsg && <div className="mt-3 text-red-500 text-[10px] font-bold flex items-center gap-1"><AlertCircle size={12}/> {errorMsg}</div>}
+                            <button disabled={esperaLoading} className="w-full mt-4 bg-zinc-900 hover:bg-zinc-800 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2 text-xs">
+                              {esperaLoading ? <Loader2 className="animate-spin" size={16} /> : <>Garantir Prioridade <Send size={14} /></>}
+                            </button>
+                          </div>
+                        </form>
+                      )}
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-8">
@@ -505,7 +546,7 @@ const TrilhaBrennand = () => {
                       <div className="flex items-start gap-3 pt-6 border-t border-zinc-200">
                         <input type="checkbox" id="terms" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} className="mt-1 h-5 w-5 accent-emerald-500 cursor-pointer rounded border-zinc-300" />
                         <label htmlFor="terms" className="text-[11px] text-zinc-500 font-bold leading-relaxed cursor-pointer select-none">
-                          Aceito o Termo de Responsabilidade (declaro estar em boas condições de saúde) e estou ciente de que a inscrição é pessoal e intransferível, não havendo devolução do valor em caso de desistência.
+                          Aceito o Termo de Responsabilidade (declaro estar em boas condições de saúde) e estou ciente de que a inscrição é pessoal e intransferível.
                         </label>
                       </div>
                       {errorMsg && <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-[10px] font-bold flex items-center gap-2"><AlertCircle size={14}/> {errorMsg}</div>}
@@ -523,17 +564,9 @@ const TrilhaBrennand = () => {
                         <CheckCircle size={32} className="text-emerald-500" />
                       </div>
                       <h2 className="text-2xl font-black uppercase italic text-zinc-900">Pagamento Confirmado!</h2>
-                      
-                      {/* === ÁREA DA CARTEIRA VIRTUAL (TICKETS PREMIUM) === */}
                       <div className="space-y-8 text-left w-full max-w-md mx-auto pb-4">
                         {meusIngressos.map((p, index) => (
-                          <motion.div 
-                            initial={{ y: 20, opacity: 0 }} 
-                            animate={{ y: 0, opacity: 1 }} 
-                            transition={{ delay: index * 0.2 }}
-                            key={index} 
-                            className="relative bg-white rounded-[2rem] overflow-hidden shadow-2xl border border-zinc-200"
-                          >
+                          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: index * 0.2 }} key={index} className="relative bg-white rounded-[2rem] overflow-hidden shadow-2xl border border-zinc-200">
                             <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 relative overflow-hidden">
                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
                                <div className="flex justify-between items-start relative z-10">
@@ -569,38 +602,14 @@ const TrilhaBrennand = () => {
                                     <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Clock size={10}/> Partida</p>
                                     <p className="text-zinc-800 font-bold text-sm">07:00 AM</p>
                                   </div>
-                                  {index === 0 && (
-                                    <div className="col-span-2 border-t border-zinc-200 pt-3 mt-1">
-                                      <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1">
-                                        <AlertTriangle size={10} className="text-red-500"/> Contato SOS
-                                      </p>
-                                      <p className="text-red-600 font-bold text-xs truncate">{p.emergency_name} - {p.emergency_phone}</p>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex flex-col items-center justify-center pt-2">
-                                   <div className="h-10 w-full max-w-[200px] flex gap-[3px] justify-center opacity-70">
-                                     {[...Array(30)].map((_, i) => (
-                                       <div key={i} className={`bg-zinc-800 rounded-full ${i % 2 === 0 ? 'w-1' : (i % 3 === 0 ? 'w-[2px]' : 'w-0.5')} h-full`}></div>
-                                     ))}
-                                   </div>
-                                   <p className="text-zinc-400 font-mono text-[10px] tracking-[0.4em] mt-3">VAGA-GARANTIDA</p>
                                 </div>
                               </div>
                             </div>
                           </motion.div>
                         ))}
                       </div>
-
-                      {/* === BOTÕES FINAIS COM SUPORTE === */}
                       <div className="space-y-3 mt-8">
-                        <button onClick={comprarMaisIngressos} className="flex items-center justify-center gap-2 w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 p-4 rounded-xl font-bold uppercase tracking-widest transition-all text-[10px] border border-zinc-300">
-                          <Plus size={16}/> Comprar ingresso para outra pessoa
-                        </button>
-
-                        <a href={linkSuporte} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full text-zinc-400 hover:text-emerald-600 py-3 font-bold uppercase tracking-widest transition-all text-[9px] mt-2">
-                          <AlertCircle size={14}/> Solicitar edição de dados
-                        </a>
+                        <button onClick={comprarMaisIngressos} className="flex items-center justify-center gap-2 w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 p-4 rounded-xl font-bold uppercase tracking-widest transition-all text-[10px] border border-zinc-300"><Plus size={16}/> Comprar para outra pessoa</button>
                       </div>
                     </div>
                   ) : (
@@ -620,19 +629,16 @@ const TrilhaBrennand = () => {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 bg-zinc-50 p-2 pl-4 rounded-xl border border-zinc-200">
                           <span className="text-xs font-mono text-zinc-600 truncate w-full text-left">{qrCodePix}</span>
-                          <button onClick={copiarPix} className={`px-4 py-3 rounded-lg text-xs font-bold flex items-center gap-2 shrink-0 transition-all ${copiado ? 'bg-emerald-500 text-white' : 'bg-zinc-200 hover:bg-zinc-300 text-zinc-800'}`}>
-                            {copiado ? <CheckCircle size={14} /> : <Copy size={14} />} 
-                            {copiado ? 'Copiado!' : 'Copiar'}
-                          </button>
+                          <button onClick={copiarPix} className={`px-4 py-3 rounded-lg text-xs font-bold flex items-center gap-2 shrink-0 transition-all ${copiado ? 'bg-emerald-500 text-white' : 'bg-zinc-200 hover:bg-zinc-300 text-zinc-800'}`}>{copiado ? <CheckCircle size={14} /> : <Copy size={14} />} {copiado ? 'Copiado!' : 'Copiar'}</button>
                         </div>
                         {tempoRestante > 0 ? (
                           <div className="flex flex-col items-center justify-center gap-2 mt-4">
                             <p className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold animate-pulse">Aguardando pagamento...</p>
                             <div className="flex items-center gap-2 text-2xl font-mono bg-white px-4 py-2 rounded-xl border border-zinc-200 text-zinc-900 shadow-sm"><Clock size={20} className="text-emerald-500" /><span>{formatarTempo(tempoRestante)}</span></div>
-                            <p className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold">Tempo para o PIX expirar</p>
+                            <p className="text-[9px] uppercase tracking-wider text-zinc-400 font-bold">Tempo para expirar</p>
                           </div>
                         ) : (
-                          <div className="text-red-600 font-bold text-xs mt-4 bg-red-50 p-4 rounded-xl border border-red-200">Tempo expirado! Por favor, recarregue a página e gere uma nova inscrição.</div>
+                          <div className="text-red-600 font-bold text-xs mt-4 bg-red-50 p-4 rounded-xl border border-red-200">Tempo expirado! Recarregue a página e tente novamente.</div>
                         )}
                       </div>
                     </>
@@ -647,20 +653,6 @@ const TrilhaBrennand = () => {
       <footer className="bg-white pt-12 pb-6 border-t border-zinc-200 relative overflow-hidden mt-12">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-1 bg-gradient-to-r from-transparent via-emerald-200 to-transparent blur-sm"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="max-w-md mx-auto bg-zinc-50 border border-zinc-200 rounded-2xl p-6 mb-8 backdrop-blur-sm relative overflow-hidden group shadow-sm">
-            <h4 className="text-zinc-900 font-black uppercase tracking-widest mb-2 flex items-center justify-center gap-2 text-sm">Vem pra trilha com a gente <Users size={16} className="text-emerald-500"/></h4>
-            <p className="text-zinc-500 text-xs mb-6 px-2 leading-relaxed">Acompanhe nossa rotina, tire dúvidas no grupo e venha superar seus limites com a gente. <br/><span className="text-emerald-600 font-bold mt-2 block">#VemParaTrilha </span></p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href={linkInstagram} target="_blank" className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest"><Instagram size={16} /> Siga no Insta</motion.a>
-              
-              <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href={linkGrupoWhats} target="_blank" className="flex-1 bg-emerald-600 text-white font-black py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M11.996 0A11.96 11.96 0 0 0 0 11.996c0 2.115.548 4.14 1.59 5.955L.003 24l6.19-1.62A11.956 11.956 0 0 0 11.996 24C18.625 24 24 18.625 24 11.996 24 5.367 18.625 0 11.996 0zM7.202 5.86c.218-.01.442-.016.666-.016.27 0 .618.01.9.52.316.57 1.018 2.476 1.107 2.665.09.19.16.42-.03.65-.188.22-.26.33-.518.65-.258.31-.54.67-.77.905-.258.26-.528.53-.228 1.04.3.5 1.34 2.21 2.89 3.58 2.008 1.77 3.658 2.33 4.198 2.56.54.23.86.19 1.17-.13.31-.32 1.34-1.57 1.7-2.11.36-.54.72-.45 1.21-.26.5.19 3.16 1.49 3.7 1.76.54.26.9.39 1.03.6.13.22.13 1.26-.35 2.48-.48 1.22-2.82 2.38-3.9 2.45-1.07.07-2.22.4-6.35-1.22-4.9-1.92-8.08-6.9-8.33-7.23-.25-.33-1.98-2.65-1.98-5.06s1.22-3.6 1.66-4.06c.44-.45 1.05-.58 1.54-.58z"/>
-                </svg>
-                Entra no Grupo
-              </motion.a>
-            </div>
-          </div>
           <div className="flex flex-col items-center gap-4 border-t border-zinc-200 pt-6">
             <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">© 2026 Vem Para Trilha. Todos os direitos reservados.</p>
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="py-2 px-6 rounded-full bg-zinc-50 border border-zinc-200 text-emerald-600 font-bold text-[10px] uppercase tracking-widest hover:bg-zinc-100 hover:text-emerald-700 flex items-center gap-2 transition-colors shadow-sm">Voltar ao Topo <ArrowRight className="-rotate-90 w-3 h-3" /></button>
