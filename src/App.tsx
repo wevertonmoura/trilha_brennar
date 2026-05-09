@@ -246,11 +246,10 @@ const TrilhaBrennand = () => {
     try {
       const mainEmail = participants[0].email;
       const cpfPrincipal = participants[0].cpf.replace(/\D/g, '');
-
-      await supabase
+await supabase
         .from('inscricao_trilha')
         .delete()
-        .eq('cpf', cpfPrincipal)
+        .eq('telefone', participants[0].phone)
         .eq('pago', false);
 
       const promises = participants.map((p, idx) => 
