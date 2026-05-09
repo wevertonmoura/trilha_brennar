@@ -68,7 +68,7 @@ const TrilhaBrennand = () => {
           .eq('pago', true);
 
         if (error) throw error;
-        if (count !== null && count >= 67) {
+        if (count !== null && count >= 65) {
           setVagasEsgotadas(true);
         }
       } catch (err) {
