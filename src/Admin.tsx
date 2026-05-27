@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { UserCheck, DollarSign, Users, ArrowLeft, Loader2, Search, ShieldAlert, Check, Download, Trash2, Clock, MessageCircle } from 'lucide-react';
+import { UserCheck, DollarSign, Users, ArrowLeft, Loader2, Search, ShieldAlert, Check, Download, Trash2, Clock, MessageCircle, Filter } from 'lucide-react';
 
 const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const [adminData, setAdminData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'pagos' | 'pendentes'>('todos');
   const [aprovandoId, setAprovandoId] = useState<string | null>(null); 
   const [excluindoId, setExcluindoId] = useState<string | null>(null);
 
@@ -95,25 +96,20 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     const titular = titularObj.nome.split(' ')[0];
     const acompanhantes = grupo.filter(p => p.id !== titularObj.id).map(p => p.nome.split(' ')[0]);
 
-    // 4. Constrói a mensagem dinâmica
+    // 4. Constrói a mensagem mantendo a lógica de nome individual ou casadinha
     let saudacao = "";
-    let textoVaga = "";
-    let textoInstagram = "";
 
     if (acompanhantes.length > 0) {
       // Comprou casadinha/acompanhado
       const nomesAcompanhantes = acompanhantes.join(' e ');
-      saudacao = `Fala ${titular} e ${nomesAcompanhantes}! 🚀`;
-      textoVaga = "a compra de vocês está CONFIRMADA";
-      textoInstagram = "os @ do Instagram de vocês pra gente montar aqueles banners tops e postar as presenças confirmadas";
+      saudacao = `Fala ${titular} e ${nomesAcompanhantes}!`;
     } else {
       // Comprou sozinho
-      saudacao = `Fala ${titular}! 🚀`;
-      textoVaga = "sua compra está CONFIRMADA";
-      textoInstagram = "o seu @ do Instagram pra gente montar aquele banner top e postar a sua presença confirmada";
+      saudacao = `Fala ${titular}!`;
     }
 
-    const textoMensagem = `${saudacao}\n\nPassando para avisar que o pagamento foi recebido e ${textoVaga} para a Trilha da Cachoeira do Brennand! 🍃🎒\n\nAgora manda aqui ${textoInstagram} lá no Instagram dos @invasores_081! 📸🔥`;
+    // Mensagem com o novo texto exato fornecido
+    const textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é neste domingo (dia 31)! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
   };
@@ -142,7 +138,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     document.body.removeChild(link);
   };
 
-  // === PLANILHA COMPLETA (TODOS OS DADOS DOS PAGOS) ===
+  // === PLANILHA COMPLETA (APENAS PARTICIPANTES PAGANTES) ===
   const exportarPlanilhaCompleta = () => {
     const pessoasConfirmadas = adminData.filter(p => p.pago === true);
     const headers = ["Nome Completo", "WhatsApp", "CPF", "Contato de Emergência"];
@@ -162,7 +158,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     
-    link.setAttribute("download", `Invasores_Confirmados_Trilha_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
+    link.setAttribute("download", `Invasores_Pagantes_Trilha_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -171,7 +167,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const pagos = adminData.filter(p => p.pago);
   const totalPagos = pagos.length;
   
-  // NOVA INTELIGÊNCIA FINANCEIRA: Calcula o valor exato considerando as Casadinhas
+  // MANTIDA INTEGRA A INTELIGÊNCIA FINANCEIRA DA CASADINHA
   const calcularArrecadadoExato = () => {
     const gruposPorTelefone: Record<string, number> = {};
     
@@ -191,10 +187,13 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
   const arrecadado = calcularArrecadadoExato();
 
-  const dadosFiltrados = adminData.filter(p => 
-    p.nome.toLowerCase().includes(busca.toLowerCase()) || 
-    p.telefone.includes(busca)
-  );
+  // Filtro inteligente combinando busca por texto + status selecionado
+  const dadosFiltrados = adminData.filter(p => {
+    const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
+    if (filtroStatus === 'pagos') return correspondeBusca && p.pago;
+    if (filtroStatus === 'pendentes') return correspondeBusca && !p.pago;
+    return correspondeBusca;
+  });
 
   if (loading) return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
@@ -255,6 +254,8 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
         </div>
 
         <div className="bg-zinc-900/60 backdrop-blur-xl rounded-[2.5rem] border border-zinc-800/80 overflow-hidden shadow-2xl">
+          
+          {/* Seção Superior: Busca + Botões de Download */}
           <div className="p-6 md:p-8 border-b border-zinc-800/80 bg-zinc-900/40 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 w-full md:w-auto flex-1">
               <div className="bg-zinc-800/50 p-3 rounded-xl border border-zinc-700/50"><Search size={20} className="text-emerald-500" /></div>
@@ -272,9 +273,39 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                 <ShieldAlert size={18} /> Lista SOS
               </button>
               
-              <button onClick={exportarPlanilhaCompleta} className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-emerald-500/30">
-                <Download size={18} /> Planilha Completa
+              <button onClick={exportarPlanilhaCompleta} className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-emerald-500/30" title="Baixar apenas os dados de participantes com pagamento aprovado">
+                <Download size={18} /> Baixar Dados Pagantes
               </button>
+            </div>
+          </div>
+
+          {/* Filtros Visuais de Status na Tela */}
+          <div className="px-6 md:px-8 py-4 bg-zinc-900/20 border-b border-zinc-800/50 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2 bg-zinc-950/60 p-1 rounded-xl border border-zinc-800/60">
+              <button
+                type="button"
+                onClick={() => setFiltroStatus('todos')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'todos' ? 'bg-emerald-500 text-zinc-950 shadow-lg' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                Todos ({adminData.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFiltroStatus('pagos')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'pagos' ? 'bg-emerald-500 text-zinc-950 shadow-lg' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                Pagos ({totalPagos})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFiltroStatus('pendentes')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'pendentes' ? 'bg-emerald-500 text-zinc-950 shadow-lg' : 'text-zinc-400 hover:text-zinc-200'}`}
+              >
+                Pendentes ({adminData.length - totalPagos})
+              </button>
+            </div>
+            <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+              Mostrando {dadosFiltrados.length} registro(s)
             </div>
           </div>
 
