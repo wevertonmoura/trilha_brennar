@@ -101,7 +101,8 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       saudacao = `Fala ${titular}!`;
     }
 
-    const textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é neste domingo (dia 31)! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
+    // Texto alterado com o aviso sobre os penetras e a chamada de verificação
+    const textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é neste domingo (dia 31)! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n⚠️ AVISO IMPORTANTE: Não leve pessoas sem inscrição (penetras)! Faremos uma chamada de verificação rigorosa com a lista de presença antes de começar a trilha, então evite passar vergonha.\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
   };
