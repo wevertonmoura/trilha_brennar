@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserCheck, DollarSign, Users, ArrowLeft, Loader2, Search, ShieldAlert, Check, Download, Trash2, Clock, MessageCircle, Filter } from 'lucide-react';
+import { UserCheck, DollarSign, Users, ArrowLeft, Loader2, Search, ShieldAlert, Check, Download, Trash2, Clock, MessageCircle, Eye } from 'lucide-react';
 
 const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const [adminData, setAdminData] = useState<any[]>([]);
@@ -81,34 +81,26 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
   // === FUNÇÃO PARA CHAMAR NO WHATSAPP ===
   const chamarNoWhatsApp = (telefone: string) => {
-    // 1. Agrupa todo mundo que se cadastrou com esse mesmo telefone
     const grupo = adminData.filter(p => p.telefone === telefone);
     if (grupo.length === 0) return;
 
-    // 2. Formata o número para a URL do WhatsApp
     let numeroFormatado = telefone.replace(/\D/g, ''); 
     if (numeroFormatado.length === 10 || numeroFormatado.length === 11) {
       numeroFormatado = '55' + numeroFormatado;
     }
 
-    // 3. Identifica o titular (quem tem CPF preenchido) e os acompanhantes
     const titularObj = grupo.find(p => p.cpf && p.cpf.trim() !== '') || grupo[0];
     const titular = titularObj.nome.split(' ')[0];
     const acompanhantes = grupo.filter(p => p.id !== titularObj.id).map(p => p.nome.split(' ')[0]);
 
-    // 4. Constrói a mensagem mantendo a lógica de nome individual ou casadinha
     let saudacao = "";
-
     if (acompanhantes.length > 0) {
-      // Comprou casadinha/acompanhado
       const nomesAcompanhantes = acompanhantes.join(' e ');
       saudacao = `Fala ${titular} e ${nomesAcompanhantes}!`;
     } else {
-      // Comprou sozinho
       saudacao = `Fala ${titular}!`;
     }
 
-    // Mensagem com o novo texto exato fornecido
     const textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é neste domingo (dia 31)! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
@@ -116,14 +108,11 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
   // === PLANILHA DE EMERGÊNCIA (DIA DO EVENTO) ===
   const exportarPlanilha = () => {
-    const pessoasConfirmadas = adminData.filter(p => p.pago === true);
+    const personasConfirmadas = adminData.filter(p => p.pago === true);
     const headers = ["Nome Completo", "Contato de Emergência"];
     
-    const csvRows = pessoasConfirmadas.map(p => {
-      return [ 
-        `"${p.nome}"`, 
-        `"${p.contato_emergencia || 'Não informado'}"` 
-      ].join(';'); 
+    const csvRows = personasConfirmadas.map(p => {
+      return [ `"${p.nome}"`, `"${p.contato_emergencia || 'Não informado'}"` ].join(';'); 
     });
     
     const csvContent = [headers.join(';'), ...csvRows].join('\n');
@@ -131,7 +120,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    
     link.setAttribute("download", `Lista_Emergencia_Trilha_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
     document.body.appendChild(link);
     link.click();
@@ -144,12 +132,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     const headers = ["Nome Completo", "WhatsApp", "CPF", "Contato de Emergência"];
     
     const csvRows = pessoasConfirmadas.map(p => {
-      return [ 
-        `"${p.nome}"`, 
-        `"${p.telefone}"`,
-        `"${p.cpf || 'Não informado'}"`,
-        `"${p.contato_emergencia || 'Não informado'}"` 
-      ].join(';'); 
+      return [ `"${p.nome}"`, `"${p.telefone}"`, `"${p.cpf || 'Não informado'}"`, `"${p.contato_emergencia || 'Não informado'}"` ].join(';'); 
     });
     
     const csvContent = [headers.join(';'), ...csvRows].join('\n');
@@ -157,7 +140,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    
     link.setAttribute("download", `Invasores_Pagantes_Trilha_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
     document.body.appendChild(link);
     link.click();
@@ -167,10 +149,9 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const pagos = adminData.filter(p => p.pago);
   const totalPagos = pagos.length;
   
-  // MANTIDA INTEGRA A INTELIGÊNCIA FINANCEIRA DA CASADINHA
+  // MANTIDA INTEGRA A LÓGICA DA CASADINHA
   const calcularArrecadadoExato = () => {
     const gruposPorTelefone: Record<string, number> = {};
-    
     pagos.forEach(p => {
       gruposPorTelefone[p.telefone] = (gruposPorTelefone[p.telefone] || 0) + 1;
     });
@@ -181,13 +162,12 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       const avulsos = qtd % 2;
       total += (pares * 50) + (avulsos * 30);
     });
-    
     return total;
   };
 
   const arrecadado = calcularArrecadadoExato();
 
-  // Filtro inteligente combinando busca por texto + status selecionado
+  // Filtro inteligente de busca por texto + status do botão clicado
   const dadosFiltrados = adminData.filter(p => {
     const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
     if (filtroStatus === 'pagos') return correspondeBusca && p.pago;
@@ -273,39 +253,42 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                 <ShieldAlert size={18} /> Lista SOS
               </button>
               
-              <button onClick={exportarPlanilhaCompleta} className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-emerald-500/30" title="Baixar apenas os dados de participantes com pagamento aprovado">
+              <button onClick={exportarPlanilhaCompleta} className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all border border-emerald-500/30">
                 <Download size={18} /> Baixar Dados Pagantes
               </button>
             </div>
           </div>
 
-          {/* Filtros Visuais de Status na Tela */}
+          {/* BARRA DE FILTROS */}
           <div className="px-6 md:px-8 py-4 bg-zinc-900/20 border-b border-zinc-800/50 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2 bg-zinc-950/60 p-1 rounded-xl border border-zinc-800/60">
               <button
                 type="button"
                 onClick={() => setFiltroStatus('todos')}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'todos' ? 'bg-emerald-500 text-zinc-950 shadow-lg' : 'text-zinc-400 hover:text-zinc-200'}`}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'todos' ? 'bg-zinc-800 text-white border border-zinc-700 shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 Todos ({adminData.length})
               </button>
+              
               <button
                 type="button"
                 onClick={() => setFiltroStatus('pagos')}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'pagos' ? 'bg-emerald-500 text-zinc-950 shadow-lg' : 'text-zinc-400 hover:text-zinc-200'}`}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${filtroStatus === 'pagos' ? 'bg-emerald-500 text-zinc-950 font-black shadow-lg shadow-emerald-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'}`}
               >
-                Pagos ({totalPagos})
+                <Eye size={14} /> Só Pagantes ({totalPagos})
               </button>
+
               <button
                 type="button"
                 onClick={() => setFiltroStatus('pendentes')}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'pendentes' ? 'bg-emerald-500 text-zinc-950 shadow-lg' : 'text-zinc-400 hover:text-zinc-200'}`}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'pendentes' ? 'bg-zinc-800 text-white border border-zinc-700 shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 Pendentes ({adminData.length - totalPagos})
               </button>
             </div>
+
             <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
-              Mostrando {dadosFiltrados.length} registro(s)
+              Mostrando {dadosFiltrados.length} Invasor(es) na lista abaixo
             </div>
           </div>
 
@@ -395,7 +378,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                 <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800 text-zinc-700">
                   <Search size={24} />
                 </div>
-                <p className="text-zinc-500 font-black uppercase text-xs tracking-widest">Nenhum Invasor encontrado na busca</p>
+                <p className="text-zinc-500 font-black uppercase text-xs tracking-widest">Nenhum Invasor encontrado neste filtro</p>
               </div>
             )}
           </div>
