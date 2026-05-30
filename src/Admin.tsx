@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserCheck, DollarSign, Users, ArrowLeft, Loader2, Search, ShieldAlert, Check, Download, Trash2, Clock, MessageCircle, Eye } from 'lucide-react';
+import { UserCheck, DollarSign, Users, ArrowLeft, Loader2, Search, ShieldAlert, Check, Download, Trash2, Clock, MessageCircle, Eye, Pencil } from 'lucide-react';
 
 const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const [adminData, setAdminData] = useState<any[]>([]);
@@ -8,6 +8,10 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'pagos' | 'pendentes'>('todos');
   const [aprovandoId, setAprovandoId] = useState<string | null>(null); 
   const [excluindoId, setExcluindoId] = useState<string | null>(null);
+
+  // NOVOS ESTADOS PARA A FUNÇÃO DE EDIÇÃO
+  const [editandoParticipante, setEditandoParticipante] = useState<any | null>(null);
+  const [salvandoId, setSalvandoId] = useState<string | null>(null);
 
   useEffect(() => {
     carregarDados();
@@ -79,6 +83,43 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     }
   };
 
+  // === NOVA FUNÇÃO PARA SALVAR A EDIÇÃO DOS DADOS ===
+  const salvarEdicao = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editandoParticipante) return;
+    
+    setSalvandoId(editandoParticipante.id);
+    try {
+      const res = await fetch('/api/admin-editar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senha,
+          id: editandoParticipante.id,
+          nome: editandoParticipante.nome,
+          telefone: editandoParticipante.telefone,
+          cpf: editandoParticipante.cpf,
+          contato_emergencia: editandoParticipante.contato_emergencia
+        })
+      });
+
+      if (res.ok) {
+        // Atualiza a tabela na tela instantaneamente
+        setAdminData(prevData => 
+          prevData.map(item => item.id === editandoParticipante.id ? editandoParticipante : item)
+        );
+        setEditandoParticipante(null); // Fecha o modal de edição
+      } else {
+        throw new Error("Erro do servidor ao salvar");
+      }
+    } catch (err) {
+      alert("Erro ao atualizar dados do participante.");
+      console.error(err);
+    } finally {
+      setSalvandoId(null);
+    }
+  };
+
   // === FUNÇÃO PARA CHAMAR NO WHATSAPP ===
   const chamarNoWhatsApp = (telefone: string) => {
     const grupo = adminData.filter(p => p.telefone === telefone);
@@ -101,7 +142,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       saudacao = `Fala ${titular}!`;
     }
 
-    // Texto alterado com o aviso sobre os penetras e a chamada de verificação
     const textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é neste domingo (dia 31)! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n⚠️ AVISO IMPORTANTE: Não leve pessoas sem inscrição (penetras)! Faremos uma chamada de verificação rigorosa com a lista de presença antes de começar a trilha, então evite passar vergonha.\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
@@ -129,10 +169,10 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
   // === PLANILHA COMPLETA (APENAS PARTICIPANTES PAGANTES) ===
   const exportarPlanilhaCompleta = () => {
-    const pessoasConfirmadas = adminData.filter(p => p.pago === true);
+    const personasConfirmadas = adminData.filter(p => p.pago === true);
     const headers = ["Nome Completo", "WhatsApp", "CPF", "Contato de Emergência"];
     
-    const csvRows = pessoasConfirmadas.map(p => {
+    const csvRows = personasConfirmadas.map(p => {
       return [ `"${p.nome}"`, `"${p.telefone}"`, `"${p.cpf || 'Não informado'}"`, `"${p.contato_emergencia || 'Não informado'}"` ].join(';'); 
     });
     
@@ -150,7 +190,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const pagos = adminData.filter(p => p.pago);
   const totalPagos = pagos.length;
   
-  // MANTIDA INTEGRA A LÓGICA DA CASADINHA
   const calcularArrecadadoExato = () => {
     const gruposPorTelefone: Record<string, number> = {};
     pagos.forEach(p => {
@@ -168,7 +207,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
   const arrecadado = calcularArrecadadoExato();
 
-  // Filtro inteligente de busca por texto + status do botão clicado
   const dadosFiltrados = adminData.filter(p => {
     const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
     if (filtroStatus === 'pagos') return correspondeBusca && p.pago;
@@ -351,6 +389,15 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                           </>
                         )}
 
+                        {/* BOTÃO DE EDITAR (LÁPIS) */}
+                        <button 
+                          onClick={() => setEditandoParticipante({ ...p })}
+                          className="bg-zinc-800 hover:bg-amber-500 hover:text-zinc-950 text-zinc-400 p-2 rounded-full transition-colors border border-zinc-700 hover:border-amber-400 group-hover:opacity-100 opacity-60 flex items-center justify-center ml-2"
+                          title="Editar Registro"
+                        >
+                          <Pencil size={16} />
+                        </button>
+
                         <button 
                           onClick={() => chamarNoWhatsApp(p.telefone)}
                           className="bg-zinc-800 hover:bg-[#25D366] hover:text-white text-zinc-400 p-2 rounded-full transition-colors border border-zinc-700 hover:border-[#25D366] group-hover:opacity-100 opacity-60 flex items-center justify-center ml-2"
@@ -385,6 +432,81 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
           </div>
         </div>
       </div>
+
+      {/* MODAL FLUTUANTE PARA EDIÇÃO DE PARTICIPANTE */}
+      {editandoParticipante && (
+        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+          <div className="bg-zinc-900 border border-zinc-800/80 p-6 md:p-8 rounded-[2rem] max-w-md w-full space-y-6 shadow-2xl relative">
+            <div>
+              <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">Editar Invasor</h2>
+              <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest mt-1">Alterar dados do formulário</p>
+            </div>
+            
+            <form onSubmit={salvarEdicao} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Nome Completo</label>
+                <input 
+                  type="text" 
+                  value={editandoParticipante.nome || ''} 
+                  onChange={e => setEditandoParticipante({ ...editandoParticipante, nome: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">WhatsApp (Telefone)</label>
+                <input 
+                  type="text" 
+                  value={editandoParticipante.telefone || ''} 
+                  onChange={e => setEditandoParticipante({ ...editandoParticipante, telefone: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">CPF</label>
+                <input 
+                  type="text" 
+                  value={editandoParticipante.cpf || ''} 
+                  onChange={e => setEditandoParticipante({ ...editandoParticipante, cpf: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  placeholder="CPF Pendente"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Contato de Emergência (SOS)</label>
+                <input 
+                  type="text" 
+                  value={editandoParticipante.contato_emergencia || ''} 
+                  onChange={e => setEditandoParticipante({ ...editandoParticipante, contato_emergencia: e.target.value })}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  placeholder="Não informado"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setEditandoParticipante(null)}
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest border border-zinc-700 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  disabled={salvandoId === editandoParticipante.id}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                >
+                  {salvandoId === editandoParticipante.id ? <Loader2 size={14} className="animate-spin" /> : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
