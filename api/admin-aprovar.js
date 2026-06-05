@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     }
 
     const { error } = await supabase
-      .from('inscricao_trilha')
+      .from('inscricao_edicao_2')
       .update({ pago: true })
       .eq('id', id);
 

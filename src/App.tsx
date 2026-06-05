@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Trophy, ChevronRight, Clock, Ticket, AlertTriangle, Mountain, Droplets, Coffee, Loader2, AlertCircle, ShieldCheck, Plus, Trash2, Waves, Info, QrCode, CheckCircle, X, Maximize2, Users, ArrowRight, Lock, ArrowLeft, Copy, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
@@ -58,7 +57,7 @@ const TrilhaBrennand = () => {
 
   const scenarioImages = ["/foto1.jpg", "/foto2.jpg", "/foto3.jpg", "/foto4.jpg"];
 
-  // === CHECAR LIMITE DE 50 VAGAS PAGAS ===
+  // === CHECAR LIMITE DE VAGAS PAGAS ===
   useEffect(() => {
     const verificarVagasDisponiveis = async () => {
       try {
@@ -201,11 +200,11 @@ const TrilhaBrennand = () => {
     setErrorMsg('');
 
     try {
-      const { error } = await supabase.from('lista_espera').insert([
+      const { error } = await supabase.from('lista_espera_2').insert([
         { 
           nome: nomeEspera, 
           telefone: telefoneEspera, 
-          interesse: 'Edição 2 (Junho)' 
+          interesse: 'Próxima Edição' 
         }
       ]);
 
@@ -246,7 +245,7 @@ const TrilhaBrennand = () => {
     try {
       const mainEmail = participants[0].email;
       const cpfPrincipal = participants[0].cpf.replace(/\D/g, '');
-await supabase
+      await supabase
         .from('inscricao_trilha')
         .delete()
         .eq('telefone', participants[0].phone)
@@ -386,7 +385,7 @@ await supabase
 
             <section className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="col-span-full"><h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">Sobre o evento</h2></div>
-              <InfoRow icon={<Calendar />} title="Data" text="31 de Maio de 2026" />
+              <InfoRow icon={<Calendar />} title="Data" text="05 de Julho de 2026" />
               <InfoRow icon={<Clock />} title="Horário" text="07:00 às 12:00" />
               <a href="https://maps.app.goo.gl/fy1R962DJBY4HkWY8" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><InfoRow icon={<MapPin className="text-emerald-600" />} title="Localização" text="Cachoeira do Brennand - PE" /></a>
               <InfoRow icon={<Trophy />} title="Investimento" text={`A partir de R$ ${valorIndividual},00`} />
@@ -395,7 +394,7 @@ await supabase
             <section>
               <h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">INCLUSO NO VALOR</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                <CheckItem icon={<Coffee />} text="Café da Manhã Incluso" />
+                <CheckItem icon={<Coffee />} text="Café da Manhã Coletivo" />
                 <CheckItem icon={<Users />} text="Guias Experientes" />
                 <CheckItem icon={<Trophy />} text="Medalha de Participação" />
                 <CheckItem icon={<Waves className="text-blue-500" />} text="Banho de Cachoeira" />
@@ -438,7 +437,7 @@ await supabase
                       <AlertTriangle size={48} className="mx-auto mb-4 text-red-500 animate-pulse" />
                       <h3 className="text-2xl font-black uppercase tracking-widest mb-2 text-red-600">Lote Esgotado!</h3>
                       <p className="text-sm font-bold text-zinc-700 leading-relaxed mb-6">
-                        A demanda foi gigante e as vagas para o dia 31/05 acabaram! Mas não se preocupe, estamos organizando a <strong className="text-emerald-600">Edição 2 (Junho)</strong>.
+                        A demanda foi gigante e as vagas para o dia 05/07 acabaram! Mas não se preocupe, estamos organizando a <strong className="text-emerald-600">Próxima Edição</strong>.
                       </p>
                       
                       {esperaSucesso ? (
@@ -591,7 +590,7 @@ await supabase
                                 <div className="grid grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
                                   <div>
                                     <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Calendar size={10}/> Data</p>
-                                    <p className="text-zinc-800 font-bold text-sm">31 Mai 2026</p>
+                                    <p className="text-zinc-800 font-bold text-sm">05 Jul 2026</p>
                                   </div>
                                   <div>
                                     <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Clock size={10}/> Partida</p>

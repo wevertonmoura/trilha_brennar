@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
 
     const { data, error } = await supabase
-      .from('inscricao_trilha')
+      .from('inscricao_edicao_2')
       .select('*')
       .order('created_at', { ascending: false });
 

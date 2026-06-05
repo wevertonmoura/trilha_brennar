@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       if (emailPagador) {
         // Atualizamos a tabela 'inscricao_trilha' (confirme se este é o nome da sua tabela no Supabase)
         const { error } = await supabase
-          .from('inscricao_trilha')
+          .from('inscricao_edicao_2')
           .update({ pago: true })
           .eq('email', emailPagador);
 
