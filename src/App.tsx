@@ -30,7 +30,7 @@ const TrilhaBrennand = () => {
   const [senhaAdmin, setSenhaAdmin] = useState('');
   const [erroLoginAdmin, setErroLoginAdmin] = useState('');
 
-  // === CARTEIRA DE INGRESSOS VIRTUAL ===
+  // === CARTEIRA DE INGRESSOS (Somente durante a sessão atual) ===
   const [meusIngressos, setMeusIngressos] = useState<any[]>([]);
 
   // === VALORES E CASADINHA ===
@@ -57,12 +57,12 @@ const TrilhaBrennand = () => {
 
   const scenarioImages = ["/foto1.jpg", "/foto2.jpg", "/foto3.jpg", "/foto4.jpg"];
 
-  // === CHECAR LIMITE DE VAGAS PAGAS ===
+  // === CHECAR LIMITE DE VAGAS PAGAS (Atualizado para inscricao_edicao_2) ===
   useEffect(() => {
     const verificarVagasDisponiveis = async () => {
       try {
         const { count, error } = await supabase
-          .from('inscricao_trilha')
+          .from('inscricao_edicao_2')
           .select('*', { count: 'exact', head: true })
           .eq('pago', true);
 
@@ -75,16 +75,6 @@ const TrilhaBrennand = () => {
       }
     };
     verificarVagasDisponiveis();
-  }, []);
-
-  useEffect(() => {
-    const carteiraSalva = localStorage.getItem('@trilhabrennand:carteira');
-    if (carteiraSalva) {
-      const ingressos = JSON.parse(carteiraSalva);
-      setMeusIngressos(ingressos);
-      setTelaAtual('pix');
-      setStatusPagamento('pago');
-    }
   }, []);
 
   const comprarMaisIngressos = () => {
@@ -135,11 +125,8 @@ const TrilhaBrennand = () => {
           
           if (data.status === 'approved') {
             setStatusPagamento('pago');
-            setMeusIngressos(prev => {
-              const novaCarteira = [...prev, ...participants];
-              localStorage.setItem('@trilhabrennand:carteira', JSON.stringify(novaCarteira));
-              return novaCarteira;
-            });
+            // Salva apenas na memória temporária da tela
+            setMeusIngressos(participants);
             clearInterval(intervalo);
           }
         } catch (err) {
@@ -184,7 +171,7 @@ const TrilhaBrennand = () => {
     document.getElementById('inscricao')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // === FUNÇÃO DA LISTA DE ESPERA ===
+  // === FUNÇÃO DA LISTA DE ESPERA (Nova Tabela) ===
   const handleListaEspera = async (e: React.FormEvent) => {
     e.preventDefault();
     if (nomeEspera.trim().length < 3) {
@@ -245,14 +232,15 @@ const TrilhaBrennand = () => {
     try {
       const mainEmail = participants[0].email;
       const cpfPrincipal = participants[0].cpf.replace(/\D/g, '');
+      
       await supabase
-        .from('inscricao_trilha')
+        .from('inscricao_edicao_2')
         .delete()
         .eq('telefone', participants[0].phone)
         .eq('pago', false);
 
       const promises = participants.map((p, idx) => 
-        supabase.from('inscricao_trilha').insert([{ 
+        supabase.from('inscricao_edicao_2').insert([{ 
           nome: p.name, 
           email: mainEmail, 
           telefone: participants[0].phone,
@@ -425,12 +413,6 @@ const TrilhaBrennand = () => {
                       </div>
                     )}
                   </div>
-                  
-                  {meusIngressos.length > 0 && !vagasEsgotadas && (
-                    <button onClick={() => { setTelaAtual('pix'); setStatusPagamento('pago'); }} className="w-full mb-8 bg-zinc-50 hover:bg-zinc-100 border border-emerald-500/30 text-emerald-600 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 uppercase tracking-widest text-xs transition-all shadow-sm">
-                      <Ticket size={18} /> Ver meus {meusIngressos.length} Ingressos Salvos
-                    </button>
-                  )}
 
                   {vagasEsgotadas ? (
                     <div className="bg-gradient-to-b from-red-50 to-white border border-red-200 p-8 rounded-[2rem] text-center shadow-inner mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">

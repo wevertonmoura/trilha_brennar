@@ -133,7 +133,8 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
     if (isEspera) {
       const primeiroNome = (nomePessoa || '').split(' ')[0];
-      textoMensagem = `Fala ${primeiroNome}! Aqui é da organização da Vem Para Trilha. Você estava na nossa Lista VIP de espera e acabou de abrir uma vaga! 🎉 Quer garantir a sua inscrição agora?`;
+      // MENSAGEM ATUALIZADA PARA A NOVA EDIÇÃO NO BRENNAND
+      textoMensagem = `Fala ${primeiroNome}! Aqui é a organização do grupo Invasores. Você estava na nossa Lista VIP de espera e venho trazer uma ótima notícia: acabamos de abrir as inscrições para a NOSSA NOVA EDIÇÃO na Cachoeira do Brennand (dia 05/07)! 🌿💦\n\nComo você já estava na lista, estamos te avisando com prioridade. Quer garantir a sua vaga antes que esgote de novo?`;
     } else {
       const grupo = adminData.filter(p => p.telefone === telefone);
       if (grupo.length === 0) return;
@@ -149,7 +150,8 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       } else {
         saudacao = `Fala ${titular}!`;
       }
-      textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é neste domingo (dia 31)! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n⚠️ AVISO IMPORTANTE: Não leve pessoas sem inscrição (penetras)! Faremos uma chamada de verificação rigorosa com a lista de presença antes de começar a trilha, então evite passar vergonha.\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
+      // DATA ATUALIZADA PARA 05 DE JULHO
+      textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é no dia 05 de Julho! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n⚠️ AVISO IMPORTANTE: Não leve pessoas sem inscrição (penetras)! Faremos uma chamada de verificação rigorosa com a lista de presença antes de começar a trilha, então evite passar vergonha.\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
     }
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
@@ -352,7 +354,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                             </span>
                           ) : (
                             <span className="text-[10px] bg-zinc-950 text-emerald-500 px-2 py-1 rounded font-bold uppercase border border-emerald-500/30">
-                              Fila de Espera VIP
+                              Origem: {p.interesse || 'Edição Anterior'}
                             </span>
                           )}
                           
@@ -412,7 +414,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                             </>
                           ) : (
                             <button onClick={() => chamarNoWhatsApp(p.telefone, true, p.nome)} className="bg-zinc-800 hover:bg-[#25D366] hover:text-white text-zinc-400 px-4 py-2 rounded-xl transition-colors border border-zinc-700 hover:border-[#25D366] flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-                              <MessageCircle size={16} /> Avisar Vaga
+                              <MessageCircle size={16} /> Avisar Trilha Nova
                             </button>
                           )}
                         </div>
