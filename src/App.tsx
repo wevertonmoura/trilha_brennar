@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Trophy, ChevronRight, Clock, Ticket, AlertTriangle, Mountain, Droplets, Coffee, Loader2, AlertCircle, ShieldCheck, Plus, Trash2, Waves, Info, QrCode, CheckCircle, X, Maximize2, Users, ArrowRight, Lock, ArrowLeft, Copy, Send } from 'lucide-react';
+import { Calendar, MapPin, Trophy, ChevronRight, Clock, AlertTriangle, Mountain, Droplets, Coffee, Loader2, AlertCircle, ShieldCheck, Plus, Trash2, Waves, Info, QrCode, CheckCircle, X, Maximize2, Users, ArrowRight, Lock, ArrowLeft, Copy, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import Admin from './Admin'; 
