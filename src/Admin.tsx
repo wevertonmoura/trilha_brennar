@@ -134,7 +134,20 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     if (isEspera) {
       const primeiroNome = (nomePessoa || '').split(' ')[0];
       // MENSAGEM ATUALIZADA PARA A NOVA EDIÇÃO NO BRENNAND
-      textoMensagem = `Fala ${primeiroNome}! Aqui é a organização do grupo Invasores. Você estava na nossa Lista VIP de espera e venho trazer uma ótima notícia: acabamos de abrir as inscrições para a NOSSA NOVA EDIÇÃO na Cachoeira do Brennand (dia 05/07)! 🌿💦\n\nComo você já estava na lista, estamos te avisando com prioridade. Quer garantir a sua vaga antes que esgote de novo?`;
+      textoMensagem = `Fala ${primeiroNome}! 🌟 VOCÊ TEM PRIORIDADE! (Lista VIP Invasores) 🌟
+
+Tudo bem? Você ficou na nossa lista de espera da última vez, então viemos te avisar em primeira mão: as inscrições para a trilha da Cachoeira do Brennand acabaram de abrir! 🤫
+
+🗓️ Data: 05 de Julho (Domingo)
+💰 Valor: R$ 30 (Individual) ou R$ 50 (Casadinha)
+✅ Incluso: Café da manhã coletivo, guias, medalha e banho de cachoeira!
+
+Corre no site e já garante o seu lugar antes que a gente divulgue no Instagram e acabe tudo de novo:
+
+👉 Acesse o site aqui:
+[https://trilha-brennar.vercel.app/]
+
+Nos vemos na trilha! ⛰️🔥;
     } else {
       const grupo = adminData.filter(p => p.telefone === telefone);
       if (grupo.length === 0) return;
