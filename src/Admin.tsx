@@ -134,7 +134,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     if (isEspera) {
       const primeiroNome = (nomePessoa || '').split(' ')[0];
       // MENSAGEM CORRIGIDA PARA A NOVA EDIÇÃO NO BRENNAND
-      textoMensagem = `Fala ${primeiroNome}! 🌟 VOCÊ TEM PRIORIDADE! (Lista VIP Invasores) 🌟\n\nTudo bem? Você ficou na nossa lista de espera da última vez, então viemos te avisar em primeira mão: as inscrições para a trilha da Cachoeira do Brennand acabaram de abrir! 🤫\n\n🗓️ Data: 05 de Julho (Domingo)\n💰 Valor: R$ 30 (Individual) ou R$ 50 (Casadinha)\n✅ Incluso: Café da manhã coletivo, guias, medalha e banho de cachoeira!\n\nCorre no site e já garante o seu lugar antes que a gente divulgue no Instagram e acabe tudo de novo:\n\n👉 Acesse o site aqui:\nhttps://trilha-brennar.vercel.app/\n\nNos vemos na trilha! ⛰️🔥`;
+      textoMensagem = `Fala ${primeiroNome}! 🌟 VOCÊ TEM PRIORIDADE! (Lista VIP Vem para trilha) 🌟\n\nTudo bem? Você ficou na nossa lista de espera da última vez, então viemos te avisar em primeira mão: as inscrições para a trilha da Cachoeira do Brennand acabaram de abrir! 🤫\n\n🗓️ Data: 05 de Julho (Domingo)\n💰 Valor: R$ 30 (Individual) ou R$ 50 (Casadinha)\n✅ Incluso: Guias, medalha e banho de cachoeira!\n\nCorre no site e já garante o seu lugar antes que a gente divulgue no Instagram e acabe tudo de novo:\n\n👉 Acesse o site aqui:\nhttps://trilha-brennar.vercel.app/\n\nNos vemos na trilha! ⛰️🔥`;
     } else {
       const grupo = adminData.filter(p => p.telefone === telefone);
       if (grupo.length === 0) return;
