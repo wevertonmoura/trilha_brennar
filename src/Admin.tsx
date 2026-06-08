@@ -133,21 +133,8 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
     if (isEspera) {
       const primeiroNome = (nomePessoa || '').split(' ')[0];
-      // MENSAGEM ATUALIZADA PARA A NOVA EDIÇÃO NO BRENNAND
-      textoMensagem = `Fala ${primeiroNome}! 🌟 VOCÊ TEM PRIORIDADE! (Lista VIP Invasores) 🌟
-
-Tudo bem? Você ficou na nossa lista de espera da última vez, então viemos te avisar em primeira mão: as inscrições para a trilha da Cachoeira do Brennand acabaram de abrir! 🤫
-
-🗓️ Data: 05 de Julho (Domingo)
-💰 Valor: R$ 30 (Individual) ou R$ 50 (Casadinha)
-✅ Incluso: Café da manhã coletivo, guias, medalha e banho de cachoeira!
-
-Corre no site e já garante o seu lugar antes que a gente divulgue no Instagram e acabe tudo de novo:
-
-👉 Acesse o site aqui:
-[https://trilha-brennar.vercel.app/]
-
-Nos vemos na trilha! ⛰️🔥;
+      // MENSAGEM CORRIGIDA PARA A NOVA EDIÇÃO NO BRENNAND
+      textoMensagem = `Fala ${primeiroNome}! 🌟 VOCÊ TEM PRIORIDADE! (Lista VIP Invasores) 🌟\n\nTudo bem? Você ficou na nossa lista de espera da última vez, então viemos te avisar em primeira mão: as inscrições para a trilha da Cachoeira do Brennand acabaram de abrir! 🤫\n\n🗓️ Data: 05 de Julho (Domingo)\n💰 Valor: R$ 30 (Individual) ou R$ 50 (Casadinha)\n✅ Incluso: Café da manhã coletivo, guias, medalha e banho de cachoeira!\n\nCorre no site e já garante o seu lugar antes que a gente divulgue no Instagram e acabe tudo de novo:\n\n👉 Acesse o site aqui:\nhttps://trilha-brennar.vercel.app/\n\nNos vemos na trilha! ⛰️🔥`;
     } else {
       const grupo = adminData.filter(p => p.telefone === telefone);
       if (grupo.length === 0) return;
@@ -163,7 +150,7 @@ Nos vemos na trilha! ⛰️🔥;
       } else {
         saudacao = `Fala ${titular}!`;
       }
-      // DATA ATUALIZADA PARA 05 DE JULHO
+      
       textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é no dia 05 de Julho! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n⚠️ AVISO IMPORTANTE: Não leve pessoas sem inscrição (penetras)! Faremos uma chamada de verificação rigorosa com a lista de presença antes de começar a trilha, então evite passar vergonha.\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
     }
     
