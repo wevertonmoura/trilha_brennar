@@ -19,6 +19,7 @@ const TrilhaBrennand = () => {
   
   // === ESTADOS DA LISTA DE ESPERA ===
   const [nomeEspera, setNomeEspera] = useState('');
+  
   const [telefoneEspera, setTelefoneEspera] = useState('');
   const [esperaLoading, setEsperaLoading] = useState(false);
   const [esperaSucesso, setEsperaSucesso] = useState(false);
@@ -408,8 +409,8 @@ const TrilhaBrennand = () => {
                     <h2 className="text-4xl font-black uppercase italic tracking-tighter text-zinc-900">INSCRIÇÃO</h2>
                     {!vagasEsgotadas && (
                       <div className="flex flex-col gap-1 mt-2">
-                        <p className="text-emerald-600 text-sm font-bold tracking-widest uppercase">Individual: R$ 30,00</p>
-                        <p className="text-pink-500 text-xs font-black tracking-widest uppercase animate-pulse">🔥 Casadinha: 2 pessoas por R$ 50,00</p>
+                        <p className="text-emerald-600 text-sm font-bold tracking-widest uppercase">Individual: R$ 35,00</p>
+                        <p className="text-pink-500 text-xs font-black tracking-widest uppercase animate-pulse">🔥 Casadinha: 2 pessoas por R$ 60,00</p>
                       </div>
                     )}
                   </div>

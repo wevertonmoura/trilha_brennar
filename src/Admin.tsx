@@ -150,7 +150,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
         saudacao = `Fala, ${titular}!`;
       }
       
-      // TEXTO COM O AVISO DO GRUPO NA SEMANA DA TRILHA
       textoMensagem = `${saudacao} Aqui é da organização do Vem Para Trilha. Passando para agradecer pela sua inscrição! A sua compra para a Cachoeira do Brennand foi CONFIRMADA com sucesso! ✅\n\nA nossa aventura já é no dia 05 de Julho! ⛰️🔥\n\nQueria te pedir um favor: manda aqui o seu @ do Instagram e uma foto sua bem massa para a gente preparar a sua arte de presença confirmada, beleza?\n\nAh, só para avisar: na semana da trilha vamos criar um grupo oficial no WhatsApp com todo mundo que vai participar para passar a localização exata, ponto de encontro e os últimos detalhes, beleza? Nos vemos lá! 🎒💦`;
     }
     
@@ -196,12 +195,15 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
   const arrecadado = calcularArrecadadoExato();
 
-  const dadosFiltrados = adminData.filter(p => {
-    const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
-    if (filtroStatus === 'pagos') return correspondeBusca && p.pago;
-    if (filtroStatus === 'pendentes') return correspondeBusca && !p.pago;
-    return correspondeBusca;
-  });
+  // AQUI ESTÁ A CORREÇÃO! A variável listaEsperaData está sendo usada corretamente.
+  const dadosFiltrados = abaAtual === 'inscricoes' 
+    ? adminData.filter(p => {
+        const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
+        if (filtroStatus === 'pagos') return correspondeBusca && p.pago;
+        if (filtroStatus === 'pendentes') return correspondeBusca && !p.pago;
+        return correspondeBusca;
+      })
+    : listaEsperaData.filter(p => (p.nome || '').toLowerCase().includes(busca.toLowerCase()) || (p.telefone || '').includes(busca));
 
   if (loading && abaAtual === 'inscricoes' && adminData.length === 0) return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
@@ -253,7 +255,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
         {/* CARDS (SÓ APARECEM NA ABA DE INSCRIÇÕES) */}
         {abaAtual === 'inscricoes' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6 relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 shadow-xl flex items-center gap-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
               <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0"><UserCheck size={32}/></div>
               <div>
@@ -262,7 +264,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6 relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 shadow-xl flex items-center gap-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
               <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0"><DollarSign size={32}/></div>
               <div>
@@ -271,7 +273,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6">
+            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 shadow-xl flex items-center gap-6">
               <div className="w-16 h-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 shrink-0"><Users size={32}/></div>
               <div>
                 <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Total Gerado</p>
