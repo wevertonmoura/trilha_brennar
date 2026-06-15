@@ -34,8 +34,8 @@ const TrilhaBrennand = () => {
   const [meusIngressos, setMeusIngressos] = useState<any[]>([]);
 
   // === VALORES E CASADINHA ===
-  const valorIndividual = 30; 
-  const valorCasadinha = 50;
+  const valorIndividual = 35; 
+  const valorCasadinha = 60;
   const taxaPix = 0.50;
   const calcularValorBase = (qtd: number) => {
     const pares = Math.floor(qtd / 2);
