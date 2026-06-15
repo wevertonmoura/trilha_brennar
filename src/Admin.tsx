@@ -133,8 +133,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
     if (isEspera) {
       const primeiroNome = (nomePessoa || '').split(' ')[0];
-      // MENSAGEM CORRIGIDA PARA A NOVA EDIÇÃO NO BRENNAND
-      textoMensagem = `Fala ${primeiroNome}! 🌟 VOCÊ TEM PRIORIDADE! (Lista VIP Vem para trilha) 🌟\n\nTudo bem? Você ficou na nossa lista de espera da última vez, então viemos te avisar em primeira mão: as inscrições para a trilha da Cachoeira do Brennand acabaram de abrir! 🤫\n\n🗓️ Data: 05 de Julho (Domingo)\n💰 Valor: R$ 30 (Individual) ou R$ 50 (Casadinha)\n✅ Incluso: Guias, medalha e banho de cachoeira!\n\nCorre no site e já garante o seu lugar antes que a gente divulgue no Instagram e acabe tudo de novo:\n\n👉 Acesse o site aqui:\nhttps://trilha-brennar.vercel.app/\n\nNos vemos na trilha! ⛰️🔥`;
+      textoMensagem = `Fala ${primeiroNome}! 🌟 VOCÊ TEM PRIORIDADE! 🌟\n\nTudo bem? Você ficou na nossa lista de espera da última vez, então viemos te avisar em primeira mão: as inscrições para a trilha da Cachoeira do Brennand acabaram de abrir! 🤫\n\n🗓️ Data: 05 de Julho (Domingo)\n💰 Valor: R$ 35 (Individual) ou R$ 60 (Casadinha)\n✅ Incluso: Guias, medalha e banho de cachoeira!\n\nCorre no site e já garante o seu lugar antes que a gente divulgue no Instagram e acabe tudo de novo:\n\n👉 Acesse o site aqui:\nhttps://trilha-brennar.vercel.app/\n\nNos vemos na trilha! ⛰️🔥`;
     } else {
       const grupo = adminData.filter(p => p.telefone === telefone);
       if (grupo.length === 0) return;
@@ -146,12 +145,13 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       let saudacao = "";
       if (acompanhantes.length > 0) {
         const nomesAcompanhantes = acompanhantes.join(' e ');
-        saudacao = `Fala ${titular} e ${nomesAcompanhantes}!`;
+        saudacao = `Fala, ${titular} e ${nomesAcompanhantes}!`;
       } else {
-        saudacao = `Fala ${titular}!`;
+        saudacao = `Fala, ${titular}!`;
       }
       
-      textoMensagem = `${saudacao} Tô muito animado, a nossa trilha já é no dia 05 de Julho! ⛰️🔥\n\nQuem já garantiu a inscrição precisa entrar no nosso grupo oficial pra receber todas as informações finais. E se você comprou ingresso extra, por favor, mande esse link pro seu acompanhante entrar também e não perder nenhum aviso!\n\n⚠️ AVISO IMPORTANTE: Não leve pessoas sem inscrição (penetras)! Faremos uma chamada de verificação rigorosa com a lista de presença antes de começar a trilha, então evite passar vergonha.\n\n👉 Link do Grupo Oficial: https://chat.whatsapp.com/LK0dZ5Uzk444rZ862jKtRH`;
+      // TEXTO COM O AVISO DO GRUPO NA SEMANA DA TRILHA
+      textoMensagem = `${saudacao} Aqui é da organização do Vem Para Trilha. Passando para agradecer pela sua inscrição! A sua compra para a Cachoeira do Brennand foi CONFIRMADA com sucesso! ✅\n\nA nossa aventura já é no dia 05 de Julho! ⛰️🔥\n\nQueria te pedir um favor: manda aqui o seu @ do Instagram e uma foto sua bem massa para a gente preparar a sua arte de presença confirmada, beleza?\n\nAh, só para avisar: na semana da trilha vamos criar um grupo oficial no WhatsApp com todo mundo que vai participar para passar a localização exata, ponto de encontro e os últimos detalhes, beleza? Nos vemos lá! 🎒💦`;
     }
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
@@ -181,7 +181,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `Invasores_Pagantes_Trilha_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
+    link.setAttribute("download", `Vem_Para_Trilha_Pagantes_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -191,27 +191,17 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const totalPagos = pagos.length;
   
   const calcularArrecadadoExato = () => {
-    const gruposPorTelefone: Record<string, number> = {};
-    pagos.forEach(p => { gruposPorTelefone[p.telefone] = (gruposPorTelefone[p.telefone] || 0) + 1; });
-    let total = 0;
-    Object.values(gruposPorTelefone).forEach(qtd => {
-      const pares = Math.floor(qtd / 2);
-      const avulsos = qtd % 2;
-      total += (pares * 50) + (avulsos * 30);
-    });
-    return total;
+    return totalPagos * 35;
   };
 
   const arrecadado = calcularArrecadadoExato();
 
-  const dadosFiltrados = abaAtual === 'inscricoes' 
-    ? adminData.filter(p => {
-        const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
-        if (filtroStatus === 'pagos') return correspondeBusca && p.pago;
-        if (filtroStatus === 'pendentes') return correspondeBusca && !p.pago;
-        return correspondeBusca;
-      })
-    : listaEsperaData.filter(p => (p.nome || '').toLowerCase().includes(busca.toLowerCase()) || (p.telefone || '').includes(busca));
+  const dadosFiltrados = adminData.filter(p => {
+    const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
+    if (filtroStatus === 'pagos') return correspondeBusca && p.pago;
+    if (filtroStatus === 'pendentes') return correspondeBusca && !p.pago;
+    return correspondeBusca;
+  });
 
   if (loading && abaAtual === 'inscricoes' && adminData.length === 0) return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
@@ -236,7 +226,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
             </div>
             <div>
               <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">Comando Central</h1>
-              <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mt-1">Invasores 081 • Edição Trilha</p>
+              <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mt-1">Vem Para Trilha • Edição Cachoeira do Brennand</p>
             </div>
           </div>
           <button onClick={fecharAdmin} className="w-full md:w-auto bg-zinc-800/80 hover:bg-zinc-700 text-white px-6 py-4 rounded-xl flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-widest transition-all border border-zinc-700 shadow-lg group">
@@ -263,7 +253,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
         {/* CARDS (SÓ APARECEM NA ABA DE INSCRIÇÕES) */}
         {abaAtual === 'inscricoes' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6 shadow-xl relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
               <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0"><UserCheck size={32}/></div>
               <div>
@@ -272,7 +262,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6 shadow-xl relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
               <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0"><DollarSign size={32}/></div>
               <div>
@@ -281,7 +271,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6 shadow-xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-md p-8 rounded-[2rem] border border-zinc-800/50 flex items-center gap-6">
               <div className="w-16 h-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 shrink-0"><Users size={32}/></div>
               <div>
                 <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Total Gerado</p>
@@ -324,7 +314,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                 <button type="button" onClick={() => setFiltroStatus('pagos')} className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${filtroStatus === 'pagos' ? 'bg-emerald-500 text-zinc-950 font-black shadow-lg shadow-emerald-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'}`}><Eye size={14} /> Só Pagantes ({totalPagos})</button>
                 <button type="button" onClick={() => setFiltroStatus('pendentes')} className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${filtroStatus === 'pendentes' ? 'bg-zinc-800 text-white border border-zinc-700 shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}>Pendentes ({adminData.length - totalPagos})</button>
               </div>
-              <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Mostrando {dadosFiltrados.length} Invasor(es) na lista abaixo</div>
+              <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Mostrando {dadosFiltrados.length} participante(s) na lista abaixo</div>
             </div>
           )}
 
@@ -343,8 +333,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                 <tbody className="divide-y divide-zinc-800/50 text-sm">
                   {dadosFiltrados.map((p, i) => (
                     <tr key={p.id || i} className="hover:bg-zinc-800/30 transition-all duration-300 group">
-                      
-                      {/* COLUNA 1 */}
                       <td className="p-6">
                         <div className="font-black text-white text-base tracking-tight mb-1 group-hover:text-emerald-400 transition-colors">{p.nome}</div>
                         <div className="flex flex-col gap-2 items-start">
@@ -367,7 +355,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                         </div>
                       </td>
 
-                      {/* COLUNA 2 */}
                       <td className="p-6">
                         <div className="font-bold text-zinc-300 mb-1">{p.telefone}</div>
                         {abaAtual === 'inscricoes' && (
@@ -378,7 +365,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                         )}
                       </td>
 
-                      {/* COLUNA 3 */}
                       <td className="p-6 text-right">
                         <div className="flex items-center justify-end gap-3">
                           {abaAtual === 'inscricoes' ? (
@@ -431,7 +417,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
                   <Search size={24} />
                 </div>
                 <p className="text-zinc-500 font-black uppercase text-xs tracking-widest">
-                  {abaAtual === 'inscricoes' ? 'Nenhum Invasor encontrado neste filtro' : 'A Lista VIP está vazia no momento'}
+                  {abaAtual === 'inscricoes' ? 'Nenhum participante encontrado neste filtro' : 'A Lista VIP está vazia no momento'}
                 </p>
               </div>
             )}
@@ -444,7 +430,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
         <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
           <div className="bg-zinc-900 border border-zinc-800/80 p-6 md:p-8 rounded-[2rem] max-w-md w-full space-y-6 shadow-2xl relative">
             <div>
-              <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">Editar Invasor</h2>
+              <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">Editar Participante</h2>
               <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest mt-1">Alterar dados do formulário</p>
             </div>
             
