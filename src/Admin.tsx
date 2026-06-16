@@ -16,7 +16,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   const [aprovandoId, setAprovandoId] = useState<string | null>(null); 
   const [excluindoId, setExcluindoId] = useState<string | null>(null);
 
-  // ESTADOS PARA A FUNÇÃO DE EDIÇÃO
   const [editandoParticipante, setEditandoParticipante] = useState<any | null>(null);
   const [salvandoId, setSalvandoId] = useState<string | null>(null);
 
@@ -34,7 +33,16 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
           body: JSON.stringify({ senha })
         });
         const data = await res.json();
-        if (data && !data.error) setAdminData(data);
+        if (data && !data.error) {
+          // AQUI ESTÁ A CORREÇÃO: Remove duplicatas (mesmo nome e telefone) para não duplicar o pagamento
+          const dadosLimpos = data.filter((pessoa: any, index: number, self: any[]) =>
+            index === self.findIndex((t: any) => (
+              t.nome.toLowerCase().trim() === pessoa.nome.toLowerCase().trim() && 
+              t.telefone === pessoa.telefone
+            ))
+          );
+          setAdminData(dadosLimpos);
+        }
       } else {
         const res = await fetch('/api/admin-espera', {
           method: 'POST',
@@ -195,7 +203,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
 
   const arrecadado = calcularArrecadadoExato();
 
-  // AQUI ESTÁ A CORREÇÃO! A variável listaEsperaData está sendo usada corretamente.
   const dadosFiltrados = abaAtual === 'inscricoes' 
     ? adminData.filter(p => {
         const correspondeBusca = p.nome.toLowerCase().includes(busca.toLowerCase()) || p.telefone.includes(busca);
