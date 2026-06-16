@@ -15,7 +15,9 @@ const TrilhaBrennand = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
-  const [vagasEsgotadas, setVagasEsgotadas] = useState(true); // <--- FORÇADO PARA TRUE AQUI PARA FECHAR AS VENDAS
+  
+  // AQUI ESTÁ A CORREÇÃO: Removido o 'setVagasEsgotadas' que não estava sendo usado
+  const [vagasEsgotadas] = useState(true); 
   
   // === ESTADOS DA LISTA DE ESPERA ===
   const [nomeEspera, setNomeEspera] = useState('');
