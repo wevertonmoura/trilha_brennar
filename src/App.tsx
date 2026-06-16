@@ -15,11 +15,10 @@ const TrilhaBrennand = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
-  const [vagasEsgotadas, setVagasEsgotadas] = useState(false);
+  const [vagasEsgotadas, setVagasEsgotadas] = useState(true); // <--- FORÇADO PARA TRUE AQUI PARA FECHAR AS VENDAS
   
   // === ESTADOS DA LISTA DE ESPERA ===
   const [nomeEspera, setNomeEspera] = useState('');
-  
   const [telefoneEspera, setTelefoneEspera] = useState('');
   const [esperaLoading, setEsperaLoading] = useState(false);
   const [esperaSucesso, setEsperaSucesso] = useState(false);
@@ -31,7 +30,7 @@ const TrilhaBrennand = () => {
   const [senhaAdmin, setSenhaAdmin] = useState('');
   const [erroLoginAdmin, setErroLoginAdmin] = useState('');
 
-  // === CARTEIRA DE INGRESSOS (Somente durante a sessão atual) ===
+  // === CARTEIRA DE INGRESSOS ===
   const [meusIngressos, setMeusIngressos] = useState<any[]>([]);
 
   // === VALORES E CASADINHA ===
@@ -57,26 +56,6 @@ const TrilhaBrennand = () => {
   ]);
 
   const scenarioImages = ["/foto1.jpg", "/foto2.jpg", "/foto3.jpg", "/foto4.jpg"];
-
-  // === CHECAR LIMITE DE VAGAS PAGAS (Atualizado para inscricao_edicao_2) ===
-  useEffect(() => {
-    const verificarVagasDisponiveis = async () => {
-      try {
-        const { count, error } = await supabase
-          .from('inscricao_edicao_2')
-          .select('*', { count: 'exact', head: true })
-          .eq('pago', true);
-
-        if (error) throw error;
-        if (count !== null && count >= 65) {
-          setVagasEsgotadas(true);
-        }
-      } catch (err) {
-        console.error("Erro ao checar limite de vagas:", err);
-      }
-    };
-    verificarVagasDisponiveis();
-  }, []);
 
   const comprarMaisIngressos = () => {
     setParticipants([{ name: '', email: '', phone: '', emergency_name: '', emergency_phone: '', cpf: '' }]);
@@ -126,7 +105,6 @@ const TrilhaBrennand = () => {
           
           if (data.status === 'approved') {
             setStatusPagamento('pago');
-            // Salva apenas na memória temporária da tela
             setMeusIngressos(participants);
             clearInterval(intervalo);
           }
@@ -172,7 +150,7 @@ const TrilhaBrennand = () => {
     document.getElementById('inscricao')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // === FUNÇÃO DA LISTA DE ESPERA (Nova Tabela) ===
+  // === FUNÇÃO DA LISTA DE ESPERA ===
   const handleListaEspera = async (e: React.FormEvent) => {
     e.preventDefault();
     if (nomeEspera.trim().length < 3) {
@@ -356,7 +334,7 @@ const TrilhaBrennand = () => {
               <h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">Descrição do evento</h2>
               <div className="space-y-6 text-zinc-700 text-lg leading-relaxed">
                 <p className="text-zinc-900 font-bold italic">Natureza, Aventura e Boas Energias! Vem com a gente!</p>
-                <p>O grupo <span className="text-emerald-600 font-bold">invasores</span> convida você para um percurso incrível de <strong>6 KM</strong> de total imersão na natureza, explorando as rotas da belíssima Cachoeira do Brennand.</p>
+                <p>O grupo <span className="text-emerald-600 font-bold">Vem Para Trilha</span> convida você para um percurso incrível de total imersão na natureza, explorando as rotas da belíssima Cachoeira do Brennand.</p>
                 <p>Esta é a oportunidade perfeita para sair da rotina e superar seus propios limites. Nossa trilha foi planejada para ser segura, acompanhada por guias experientes, e o grande prêmio é o nosso tradicional banho de cachoeira para lavar a alma!</p>
               </div>
               <div className="mt-10">
