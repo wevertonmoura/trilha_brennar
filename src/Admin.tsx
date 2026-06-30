@@ -147,19 +147,23 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       if (grupo.length === 0) return;
 
       const titularObj = grupo.find(p => p.cpf && p.cpf.trim() !== '') || grupo[0];
+      const nomes = grupo.map(p => p.nome.split(' ')[0]);
       const titular = titularObj.nome.split(' ')[0];
       const acompanhantes = grupo.filter(p => p.id !== titularObj.id).map(p => p.nome.split(' ')[0]);
 
       let saudacao = "";
       if (acompanhantes.length > 0) {
-        const nomesAcompanhantes = acompanhantes.join(' e ');
-        saudacao = `Fala, ${titular} e ${nomesAcompanhantes}!`;
+        saudacao = `Fala, ${titular} e ${acompanhantes.join(' e ')}!`;
       } else {
         saudacao = `Fala, ${titular}!`;
       }
       
-      // TEXTO 1 APLICADO AQUI COM A SAUDAÇÃO PERSONALIZADA
-      textoMensagem = `${saudacao}\n\n🚨 *ATENÇÃO, GALERA DO VEM PARA TRILHA!* 🚨\n\nA nossa aventura na Cachoeira do Brennand está chegando! É neste *domingo, dia 05/07*. ⛰️🔥\n\n🇧🇷 *TRILHA TEMÁTICA:*\nVamos no clima do Brasil! Se puder, vá com uma camisa amarela ou da seleção para a gente fazer aquela foto oficial pesada da nossa equipe! 💛💚\n\n📲 *PASSO OBRIGATÓRIO (GRUPO OFICIAL):*\nEntre agora no grupo oficial da trilha para receber o ponto de encontro e os horários finais:\n👉 https://chat.whatsapp.com/C7tsQCDzq0y6WZTnklNGmM\n\n_(Atenção: Se você comprou mais de um ingresso, mande esse link agora mesmo para o seu acompanhante entrar no grupo também!)_\n\n⚠️ *AVISO IMPORTANTE - ZERO PENETRAS:*\nFaremos uma chamada nominal e detalhada pela lista de pagantes antes de iniciar a trilha. Só fará o percurso quem estiver com o nome na lista. Por favor, *não levem pessoas sem ingresso (penetras)* para evitar constrangimentos e não passar vergonha na hora, beleza?\n\nNos vemos no domingo! Bora simbora lavar a alma! 💦🎒`;
+      let parteAcompanhante = "";
+      if (acompanhantes.length > 0) {
+        parteAcompanhante = `\n\n(Como vocês compraram em grupo, *enviei o link abaixo para o(s) acompanhante(s)*: ${acompanhantes.join(', ')}. Não esqueçam de compartilhar com eles!)`;
+      }
+
+      textoMensagem = `${saudacao} Aqui é da organização do Vem Para Trilha. Passando para agradecer pela sua inscrição! A sua compra para a Cachoeira do Brennand foi CONFIRMADA com sucesso! ✅\n\n🚨 ATENÇÃO: A nossa aventura já é neste domingo, dia 05/07!\n\n🇧🇷 *TRILHA TEMÁTICA:*\nVamos no clima do Brasil! Se puder, vá com uma camisa amarela ou da seleção para a gente fazer aquela foto oficial da nossa equipe! 💛💚\n\n📲 *PASSO OBRIGATÓRIO (GRUPO OFICIAL):*\nEntre agora no grupo oficial da trilha para receber o ponto de encontro e os horários finais:\n👉 https://chat.whatsapp.com/C7tsQCDzq0y6WZTnklNGmM${parteAcompanhante}\n\n⚠️ *AVISO IMPORTANTE - ZERO PENETRAS:*\nFaremos uma chamada nominal e detalhada pela lista de pagantes antes de iniciar a trilha. Só fará o percurso quem estiver com o nome na lista. Por favor, *não levem pessoas sem ingresso (penetras)* para evitar constrangimentos e não passar vergonha na hora, beleza?\n\nNos vemos no domingo! Bora simbora lavar a alma! 💦🎒`;
     }
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
