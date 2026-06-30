@@ -34,7 +34,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
         });
         const data = await res.json();
         if (data && !data.error) {
-          // AQUI ESTÁ A CORREÇÃO: Remove duplicatas (mesmo nome e telefone) para não duplicar o pagamento
+          // Filtro de segurança para evitar duplicatas visuais
           const dadosLimpos = data.filter((pessoa: any, index: number, self: any[]) =>
             index === self.findIndex((t: any) => (
               t.nome.toLowerCase().trim() === pessoa.nome.toLowerCase().trim() && 
@@ -158,7 +158,8 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
         saudacao = `Fala, ${titular}!`;
       }
       
-      textoMensagem = `${saudacao} Aqui é da organização do Vem Para Trilha. Passando para agradecer pela sua inscrição! A sua compra para a Cachoeira do Brennand foi CONFIRMADA com sucesso! ✅\n\nA nossa aventura já é no dia 05 de Julho! ⛰️🔥\n\nQueria te pedir um favor: manda aqui o seu @ do Instagram e uma foto sua bem massa para a gente preparar a sua arte de presença confirmada, beleza?\n\nAh, só para avisar: na semana da trilha vamos criar um grupo oficial no WhatsApp com todo mundo que vai participar para passar a localização exata, ponto de encontro e os últimos detalhes, beleza? Nos vemos lá! 🎒💦`;
+      // TEXTO 1 APLICADO AQUI COM A SAUDAÇÃO PERSONALIZADA
+      textoMensagem = `${saudacao}\n\n🚨 *ATENÇÃO, GALERA DO VEM PARA TRILHA!* 🚨\n\nA nossa aventura na Cachoeira do Brennand está chegando! É neste *domingo, dia 05/07*. ⛰️🔥\n\n🇧🇷 *TRILHA TEMÁTICA:*\nVamos no clima do Brasil! Se puder, vá com uma camisa amarela ou da seleção para a gente fazer aquela foto oficial pesada da nossa equipe! 💛💚\n\n📲 *PASSO OBRIGATÓRIO (GRUPO OFICIAL):*\nEntre agora no grupo oficial da trilha para receber o ponto de encontro e os horários finais:\n👉 https://chat.whatsapp.com/C7tsQCDzq0y6WZTnklNGmM\n\n_(Atenção: Se você comprou mais de um ingresso, mande esse link agora mesmo para o seu acompanhante entrar no grupo também!)_\n\n⚠️ *AVISO IMPORTANTE - ZERO PENETRAS:*\nFaremos uma chamada nominal e detalhada pela lista de pagantes antes de iniciar a trilha. Só fará o percurso quem estiver com o nome na lista. Por favor, *não levem pessoas sem ingresso (penetras)* para evitar constrangimentos e não passar vergonha na hora, beleza?\n\nNos vemos no domingo! Bora simbora lavar a alma! 💦🎒`;
     }
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
