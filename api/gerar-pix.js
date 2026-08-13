@@ -1,19 +1,38 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Conectando ao Supabase pelo Backend
+const supabaseUrl = 'https://moqhjiesavnivkancxpz.supabase.co';
+const supabaseKey = 'sb_publishable_X5iKQonjycmsEMfeePTsyg_OkKp5ts-';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Método não permitido' });
   }
 
-  const { valor, email, nome, cpf } = req.body;
-
-  // Tratando o nome para enviar primeiro e último nome separadamente
-  const nomePartes = nome.trim().split(" ");
-  const firstName = nomePartes[0];
-  const lastName = nomePartes.length > 1 ? nomePartes.slice(1).join(" ") : "Invasor";
-
-  // IMPORTANTE: Atualize para o link real da Vercel deste novo projeto da Brennand
-  // Exemplo: https://trilha-brennand.vercel.app/api/webhook
-  const webhookUrl = 'https://trilha-brennar.vercel.app/api/webhook';
   try {
+    // === 🚨 TRAVA DE SEGURANÇA (LIMITE DE 30 VAGAS) 🚨 ===
+    // Antes de chamar o Mercado Pago, ele conta as vagas pagas
+    const { count, error: countError } = await supabase
+      .from('inscricao_edicao_2')
+      .select('*', { count: 'exact', head: true })
+      .eq('pago', true);
+
+    if (count !== null && count >= 30) {
+      // Se tiver 30 ou mais, devolve um erro imediato!
+      return res.status(400).json({ error: 'VAGAS_ESGOTADAS' });
+    }
+    // ====================================================
+
+    const { valor, email, nome, cpf } = req.body;
+
+    // Tratando o nome para enviar primeiro e último nome separadamente
+    const nomePartes = nome.trim().split(" ");
+    const firstName = nomePartes[0];
+    const lastName = nomePartes.length > 1 ? nomePartes.slice(1).join(" ") : "Invasor";
+
+    const webhookUrl = 'https://trilha-brennar.vercel.app/api/webhook';
+    
     const response = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
@@ -23,7 +42,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         transaction_amount: Number(valor),
-        description: `Trilha Cachoeira do Brennand - ${nome}`, // Texto que aparece no extrato do cliente
+        description: `Trilha Cachoeira do Brennand - ${nome}`,
         payment_method_id: 'pix',
         payer: {
           email: email,
@@ -34,7 +53,7 @@ export default async function handler(req, res) {
             number: cpf 
           }
         },
-        external_reference: email, // Usado pelo seu webhook para liberar o ingresso no banco de dados
+        external_reference: email, 
         notification_url: webhookUrl 
       })
     });

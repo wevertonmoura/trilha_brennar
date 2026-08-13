@@ -199,13 +199,24 @@ const TrilhaBrennand = () => {
       });
 
       const mpData = await response.json();
+
+      // === 🚨 NOVA REGRA DE BLOQUEIO DO FRONTEND 🚨 ===
+      if (mpData.error === 'VAGAS_ESGOTADAS') {
+        setVagasEsgotadas(true); // Muda a tela para "Lote Esgotado" na mesma hora
+        throw new Error("Lote esgotado agora mesmo! As últimas vagas foram preenchidas.");
+      }
+      // ===============================================
+
       if (mpData.point_of_interaction?.transaction_data) {
         setQrCodePix(mpData.point_of_interaction.transaction_data.qr_code);
         setQrCodeImg(mpData.point_of_interaction.transaction_data.qr_code_base64);
         setPaymentId(mpData.id); setTelaAtual('pix'); setTempoRestante(900); 
       } else throw new Error("CPF inválido ou não autorizado.");
-    } catch (err: any) { setErrorMsg(err.message || "Erro de conexão."); } 
-    finally { setLoading(false); }
+    } catch (err: any) { 
+      setErrorMsg(err.message || "Erro de conexão."); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const copiarPix = () => {
