@@ -56,7 +56,7 @@ export default function Pagamento({
                     <div className="grid grid-cols-2 gap-4 bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
                       <div>
                         <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Calendar size={10}/> Data</p>
-                        <p className="text-zinc-800 font-bold text-sm">06 Set 2026</p>
+                        <p className="text-zinc-800 font-bold text-sm">13 Set 2026</p>
                       </div>
                       <div>
                         <p className="text-[10px] uppercase text-zinc-500 font-bold tracking-widest mb-1 flex items-center gap-1"><Clock size={10}/> Partida</p>
