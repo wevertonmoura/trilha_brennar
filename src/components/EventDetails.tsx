@@ -22,11 +22,16 @@ export default function EventDetails({ setSelectedImg, valorIndividual, scenario
   return (
     <div className="lg:col-span-2 space-y-16">
       <section>
+        {/* SELO DE DESTAQUE 18+ */}
+        <div className="inline-flex items-center gap-2 bg-amber-100 border border-amber-300 text-amber-900 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-6 shadow-sm">
+          <span>🔞 Evento exclusivo para maiores de 18 anos</span>
+        </div>
+
         <h2 className="text-2xl font-black uppercase italic mb-6 border-b border-zinc-300 pb-2 text-zinc-900">Descrição do evento</h2>
         <div className="space-y-6 text-zinc-700 text-lg leading-relaxed">
           <p className="text-zinc-900 font-bold italic">Natureza, Aventura e Boas Energias! Vem com a gente!</p>
           <p>O grupo <span className="text-emerald-600 font-bold">Vem Para Trilha</span> convida você para um percurso incrível de total imersão na natureza, explorando as rotas da belíssima Cachoeira do Brennand.</p>
-          <p>Esta é a oportunidade perfeita para sair da rotina e superar seus propios limites. Nossa trilha foi planejada para ser segura, acompanhada por guias experientes, e o grande prêmio é o nosso tradicional banho de cachoeira para lavar a alma!</p>
+          <p>Esta é a oportunidade perfeita para sair da rotina e superar seus próprios limites. Nossa trilha foi planejada para ser segura, acompanhada por guias experientes, e o grande prêmio é o nosso tradicional banho de cachoeira para lavar a alma!</p>
         </div>
         <div className="mt-10">
           <h2 className="text-xl font-black uppercase italic mb-6 text-zinc-900 tracking-widest">Explore o Cenário</h2>
@@ -51,6 +56,8 @@ export default function EventDetails({ setSelectedImg, valorIndividual, scenario
           <InfoRow icon={<MapPin className="text-emerald-600" />} title="Localização" text="Cachoeira do Brennand - PE" />
         </a>
         <InfoRow icon={<Trophy />} title="Investimento" text={`A partir de R$ ${valorIndividual},00`} />
+        {/* LINHA DE FAIXA ETÁRIA */}
+        <InfoRow icon={<ShieldCheck className="text-amber-500" />} title="Classificação Etária" text="Exclusivo +18 Anos" />
       </section>
 
       <section>
