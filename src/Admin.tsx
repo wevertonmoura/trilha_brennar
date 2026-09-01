@@ -121,7 +121,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
       let saudacao = acompanhantes.length > 0 ? `Fala, ${titular} e ${acompanhantes.join(' e ')}!` : `Fala, ${titular}!`;
       let parteAcompanhante = acompanhantes.length > 0 ? `\n\n(Como vocês compraram em grupo, *enviei o link abaixo para o(s) acompanhante(s)*: ${acompanhantes.join(', ')}. Não esqueçam de compartilhar com eles!)` : "";
 
-      textoMensagem = `${saudacao} Aqui é da organização do Vem Para Trilha. Passando para agradecer pela sua inscrição! A sua compra para a Cachoeira do Brennand foi CONFIRMADA com sucesso! ✅\n\n🚨 ATENÇÃO: A nossa aventura será no dia 13/09!\n\n🇧🇷 *TRILHA TEMÁTICA:*\nVamos no clima de aventura e conexão com a natureza! 💛💚\n\n📲 *PASSO OBRIGATÓRIO (GRUPO OFICIAL):*\nEntre agora no grupo oficial da trilha para receber o ponto de encontro e os horários finais:\n👉 https://chat.whatsapp.com/C7tsQCDzq0y6WZTnklNGmM${parteAcompanhante}\n\n⚠️ *AVISO IMPORTANTE - ZERO PENETRAS:*\nFaremos uma chamada nominal e detalhada pela lista de pagantes antes de iniciar a trilha. Só fará o percurso quem estiver com o nome na lista. Por favor, *não levem pessoas sem ingresso (penetras)* para evitar constrangimentos e não passar vergonha na hora, beleza?\n\nNos vemos na trilha! Bora simbora lavar a alma! 💦🎒`;
+      textoMensagem = `${saudacao} Aqui é da organização do Vem Para Trilha. Passando para agradecer pela sua inscrição! A sua compra para a Cachoeira do Brennand foi CONFIRMADA com sucesso! ✅\n\n🚨 ATENÇÃO: A nossa aventura será no dia 13/09!\n\n🇧🇷 *TRILHA TEMÁTICA:*\nVamos no clima de aventura e conexão com a natureza! 💛💚\n\n📸 *NOVO INSTAGRAM OFICIAL:*\nInfelizmente perdemos o nosso Instagram antigo e as fotos anteriores 🙁. Criamos um perfil novo do zero! Siga a gente lá para não perder os avisos e acompanhar as fotos oficiais dessa edição:\n👉 *@seu_novo_instagram*\n\n📲 *PASSO OBRIGATÓRIO (GRUPO OFICIAL):*\nEntre agora no grupo oficial da trilha para receber o ponto de encontro e os horários finais:\n👉 https://chat.whatsapp.com/C7tsQCDzq0y6WZTnklNGmM${parteAcompanhante}\n\n⚠️ *AVISO IMPORTANTE - ZERO PENETRAS:*\nFaremos uma chamada nominal e detalhada pela lista de pagantes antes de iniciar a trilha. Só fará o percurso quem estiver com o nome na lista. Por favor, *não levem pessoas sem ingresso (penetras)* para evitar constrangimentos e não passar vergonha na hora, beleza?\n\nNos vemos na trilha! Bora simbora lavar a alma! 💦🎒`;
     }
     
     window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(textoMensagem)}`, '_blank');
@@ -150,7 +150,7 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
     document.body.removeChild(link);
   };
 
-  // === NOVO CÁLCULO INTELIGENTE DE ARRECADAÇÃO ===
+  // === CÁLCULO INTELIGENTE DE ARRECADAÇÃO ===
   const pagos = adminData.filter(p => p.pago);
   const totalPagos = pagos.length;
   
@@ -175,7 +175,6 @@ const Admin = ({ senha, formatarMoeda, fecharAdmin }: any) => {
   };
 
   const arrecadado = calcularArrecadadoExato();
-  // ===============================================
 
   const dadosFiltrados = abaAtual === 'inscricoes' 
     ? adminData.filter(p => {
